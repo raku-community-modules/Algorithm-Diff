@@ -1,0 +1,6 @@
+Changes
+lib/Algorithm/Diff.pm       Algorithm::Diff perl module
+MANIFEST
+README
+t/base.t                    Basic test script
+t/oo.t                      OO interface test script
