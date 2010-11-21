@@ -11,7 +11,7 @@ use v6;
 
 use Algorithm::Diff;
 
-sub MAIN ($file1,$file2) {
+sub MAIN (Str $file1,Str $file2) {
 
 # open (F1, $file1) or bag("Couldn't open $file1: $!");
 # open (F2, $file2) or bag("Couldn't open $file2: $!");
