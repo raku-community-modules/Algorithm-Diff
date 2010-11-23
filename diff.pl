@@ -13,15 +13,15 @@ use Algorithm::Diff;
 
 sub MAIN (Str $file1,Str $file2) {
 
-# open (F1, $file1) or bag("Couldn't open $file1: $!");
-# open (F2, $file2) or bag("Couldn't open $file2: $!");
-# # -f $file1 or bag("$file1: not a regular file");
-# # -f $file2 or bag("$file2: not a regular file");
+# -f $file1 or bag("$file1: not a regular file");
+# -f $file2 or bag("$file2: not a regular file");
 
 # -T $file1 or bag("$file1: binary");
 # -T $file2 or bag("$file2: binary");
     
-    #todo error checking
+    $file1.IO ~~ :e || die "File does not exists: '$file1'";
+    $file2.IO ~~ :e || die "File does not exists: '$file2'";
+    
     my @f1 = lines(open ($file1));
     my @f2 = lines(open ($file2));
 
