@@ -1,15 +1,35 @@
 use v6;
 use Test;
-plan 35;
-BEGIN
-{
-    @*INC.push('lib');
-    @*INC.push('blib');
-}
+plan 46;
 
-
-#use Algorithm::Diff qw(diff LCS traverse_sequences traverse_balanced sdiff);
 use Algorithm::Diff;
+
+my @d = (2,4,6,8,10);
+my ($h, $i);
+
+$i =  Algorithm::Diff::_replaceNextLargerWith( @d, 3, $h );
+is( ~@d, '2 3 6 8 10',
+  "_replaceNextLargerWith() works ok for inserts");
+is( $i, 1, "_replaceNextLargerWith() returns correct index for inserts");
+
+$i =  Algorithm::Diff::_replaceNextLargerWith( @d, 0, $h );
+is( ~@d, '0 3 6 8 10',
+  "_replaceNextLargerWith() works ok for inserts at beginning");
+is( $i, 0,
+  "_replaceNextLargerWith() returns correct index for inserts at beginning");
+
+$i =  Algorithm::Diff::_replaceNextLargerWith( @d, 11, $h );
+is( ~@d, '0 3 6 8 10 11',
+  "_replaceNextLargerWith() works ok for inserts at end");
+is( $i, 5,
+  "_replaceNextLargerWith() returns correct index for inserts at end");
+
+$i =  Algorithm::Diff::_replaceNextLargerWith( @d, 6, $h );
+is( ~@d, '0 3 6 8 10 11',
+  "_replaceNextLargerWith() doesn't change array for already seen elements");
+ok( !$i.defined,
+  "_replaceNextLargerWith() returns undefined index for already seen elements");
+
 
 my @a = <a b c e h j l m n p>;
 my @b = <b c d e f j k l m r s t>;
@@ -18,113 +38,154 @@ my $correctResult = @correctResult.join(' ');
 my $skippedA = 'a h n p';
 my $skippedB = 'd f k r s t';
 
-# From the Algorithm::Diff manpage:
-my $correctDiffResult = [
- 	[ [ '-', 0, 'a' ] ],
-
- 	[ [ '+', 2, 'd' ] ],
-
- 	[ [ '-', 4, 'h' ], [ '+', 4, 'f' ] ],
-
- 	[ [ '+', 6, 'k' ] ],
-
- 	[
- 		[ '-', 8,  'n' ], 
- 		[ '+', 9,  'r' ], 
- 		[ '-', 9,  'p' ],
- 		[ '+', 10, 's' ],
- 		[ '+', 11, 't' ],
- 	]
- ];
-
 # Result of LCS must be as long as @a
-my @result = _longestCommonSubsequence( @a, @b );
+my @result = Algorithm::Diff::_longestCommonSubsequence( @a, @b );
 
 is(  @result.grep( *.defined ).elems(),
- 	@correctResult.elems(),
- 	"length of _longestCommonSubsequence" );
+  @correctResult.elems(),
+  "_longestCommonSubsequence returns expected number of elements" );
 
 # result has b[] line#s keyed by a[] line#
 #say "result = " ~ @result;
 
-my @aresult = map { @result[$_].defined ?? @a[$_] !! () } , 0.. @result.elems()-1;
+my @aresult = map { @result[$_].defined ?? @a[$_] !! () } , 0..^@result;
 
+my @bresult = map { @result[$_].defined ?? @b[@result[$_]]  !! () } , 0..^@result;
 
+is( ~@aresult, $correctResult,
+  "_longestCommonSubsequence @a results match expected results" );
+is( ~@bresult, $correctResult,
+  "_longestCommonSubsequence @b results match expected results" );
 
-my @bresult = map { @result[$_].defined ?? @b[@result[$_]]  !! () } , 0..@result.elems()-1;
-
-is( ~@aresult, $correctResult, "A results" );
-is( ~@bresult, $correctResult, "B results" );
 
 my ( @matchedA, @matchedB, @discardsA, @discardsB, $finishedA, $finishedB );
 
 sub match
 {
- 	my ( $a, $b ) = @_;
-        @matchedA.push( @a[$a] );
-        @matchedB.push( @b[$b] );
+    my ( $a, $b ) = @_;
+    @matchedA.push( @a[$a] );
+    @matchedB.push( @b[$b] );
 }
 
 sub discard_b
 {
- 	my ( $a, $b ) = @_;
-        @discardsB.push(@b[$b]);
+    my ( $a, $b ) = @_;
+    @discardsB.push(@b[$b]);
 }
 
 sub discard_a
 {
- 	my ( $a, $b ) = @_;
-        @discardsA.push(@a[$a]);        
+    my ( $a, $b ) = @_;
+    @discardsA.push(@a[$a]);        
 }
 
 sub finished_a
 {
- 	my ( $a, $b ) = @_;
- 	$finishedA = $a;
+    my ( $a, $b ) = @_;
+    $finishedA = $a;
 }
 
 sub finished_b
 {
- 	my ( $a, $b ) = @_;
- 	$finishedB = $b;
+    my ( $a, $b ) = @_;
+    $finishedB = $b;
 }
 
 traverse_sequences(@a,@b,
- 		MATCH     => &match,
- 		DISCARD_A => &discard_a,
- 		DISCARD_B => &discard_b
+    MATCH     => &match,
+    DISCARD_A => &discard_a,
+    DISCARD_B => &discard_b
 );
 
-is( ~@matchedA, $correctResult);
-is( ~@matchedB, $correctResult);
-is( ~@discardsA, $skippedA);
-is( ~@discardsB, $skippedB);
+is( ~@matchedA, $correctResult,
+  "traverse_sequences() returns expected matches for @a");
+is( ~@matchedB, $correctResult,
+  "traverse_sequences() returns expected matches for @b");
+is( ~@discardsA, $skippedA,
+  "traverse_sequences() returns expected skips for @a");
+is( ~@discardsB, $skippedB,
+  "traverse_sequences() returns expected skips for @b");
 
 @matchedA = @matchedB = @discardsA = @discardsB = ();
 $finishedA = $finishedB = Mu;
 
 traverse_sequences(@a,@b,
- 		MATCH      => &match,
-                    DISCARD_A  => &discard_a,
- 		DISCARD_B  => &discard_b,
- 		A_FINISHED => &finished_a,
- 		B_FINISHED => &finished_b,
+    MATCH      => &match,
+    DISCARD_A  => &discard_a,
+    DISCARD_B  => &discard_b,
+    A_FINISHED => &finished_a,
+    B_FINISHED => &finished_b,
 );
 
-is( ~@matchedA, $correctResult);
-is( ~@matchedB, $correctResult);
-is( ~@discardsA, $skippedA);
-is( ~@discardsB, $skippedB);
-is( $finishedA, 9, "index of finishedA" );
-ok( !defined($finishedB), "index of finishedB" );
+is( ~@matchedA, $correctResult,
+  "traverse_sequences() with finished callback returns expected matches for @a");
+is( ~@matchedB, $correctResult,
+  "traverse_sequences() with finished callback returns expected matches for @b");
+is( ~@discardsA, $skippedA,
+  "traverse_sequences() with finished callback returns expected skips for @a");
+is( ~@discardsB, $skippedB,
+  "traverse_sequences() with finished callback returns expected skips for @b");
+is( $finishedA, 9, "traverse_sequences() index of finishedA is as expected" );
+ok( !$finishedB.defined,
+  "traverse_sequences() index of finishedB is as expected" );
 
- my @lcs = LCS( @a, @b );
- ok( ~@lcs, $correctResult );
+
+my @lcs = LCS( @a, @b );
+is( ~@lcs, $correctResult,
+  "LCS() returns expected result" );
+
+is(LCS_length( @a, @b ), +@lcs,
+  'LCS_length() returns expected result' );
+
+########################################################
 
 # Compare the diff output with the one from the Algorithm::Diff manpage.
 my $diff = diff( @a, @b );
 
-ok( $diff eq $correctDiffResult );
+# From the Algorithm::Diff manpage:
+my $correctDiffResult = [
+    [ [ '-', 0,  'a' ] ],
+    [ [ '+', 2,  'd' ] ],
+    [ 
+      [ '-', 4,  'h' ],
+      [ '+', 4,  'f' ]
+    ],
+    [ [ '+', 6,  'k' ] ],
+    [ 
+      [ '-', 8,  'n' ], 
+      [ '+', 9,  'r' ], 
+      [ '-', 9,  'p' ],
+      [ '+', 10, 's' ],
+      [ '+', 11, 't' ],
+    ]
+ ];
+
+is( $diff, $correctDiffResult,
+  'diff() returns expected output');
+
+########################################################################
+# Compare the compact_diff output with the one
+# from the Algorithm::Diff manpage.
+
+@a = <a b c   e  h j   l m n p     >;
+@b = <  b c d e f  j k l m    r s t>;
+my @cdiff = compact_diff( @a, @b );
+
+is(@cdiff,
+#   @a      @b       @a       @b
+#  start   start   values   values
+[    0,      0,   #       =
+     0,      0,   #    a  !
+     1,      0,   #  b c  =  b c
+     3,      2,   #       !  d
+     3,      3,   #    e  =  e
+     4,      4,   #    f  !  h
+     5,      5,   #    j  =  j
+     6,      6,   #       !  k
+     6,      7,   #  l m  =  l m
+     8,      9,   #  n p  !  r s t
+    10,     12    #
+], "compact_diff() returns expected result" );
 
 ##################################################
 # <Mike Schilli> m@perlmeister.com 03/23/2002: 
@@ -140,8 +201,8 @@ $correctDiffResult = [ ['u', 'abc', 'abc'],
                         ['u', 'ghi', 'ghi'],
                         ['u', 'jkl', 'jkl'] ];
 @result = sdiff(@a, @b);
-ok(@result eq $correctDiffResult);
-
+is(@result, $correctDiffResult,
+  'sdiff() returns expected output for multi-character strings');
 
 #################################################
 @a = <a b c e h j l m n p>;
@@ -161,7 +222,8 @@ $correctDiffResult = [ ['-', 'a', '' ],
                        ['+', '',  't'],
                      ];
 @result = sdiff(@a, @b);
-ok(@result eq $correctDiffResult);
+is(@result,$correctDiffResult,
+  'sdiff() output correct');
 
 #################################################
 @a = <a b c d e>;
@@ -173,7 +235,8 @@ $correctDiffResult = [ ['u', 'a', 'a' ],
                        ['u', 'e', 'e'],
                      ];
 @result = sdiff(@a, @b);
-ok(@result eq $correctDiffResult);
+is(@result, $correctDiffResult,
+  'sdiff() output ok, various corner cases');
 
 #################################################
 @a = <a e>;
@@ -185,8 +248,8 @@ $correctDiffResult = [ ['u', 'a', 'a' ],
                        ['u', 'e', 'e'],
                      ];
 @result = sdiff(@a, @b);
-ok(@result eq $correctDiffResult);
-
+is(@result, $correctDiffResult,
+  'sdiff() output ok, various corner cases');
 #################################################
 @a = <v x a e>;
 @b = <w y a b c d e>;
@@ -200,7 +263,8 @@ $correctDiffResult = [
                        ['u', 'e', 'e'],
                      ];
 @result = sdiff(@a, @b);
-ok(@result eq $correctDiffResult);
+is(@result, $correctDiffResult,
+  'sdiff() output ok, various corner cases');
 
 #################################################
 @a = <x a e>;
@@ -214,7 +278,8 @@ $correctDiffResult = [
                        ['u', 'e', 'e'],
                      ];
 @result = sdiff(@a, @b);
-ok(@result eq  $correctDiffResult);
+is(@result, $correctDiffResult,
+  'sdiff() output ok, various corner cases');
 
 #################################################
 @a = <a e>;
@@ -228,7 +293,8 @@ $correctDiffResult = [
                        ['u', 'e', 'e'],
                      ];
 @result = sdiff(@a, @b);
-ok(@result eq $correctDiffResult);
+is(@result, $correctDiffResult,
+  'sdiff() output ok, various corner cases');
 
 #################################################
 @a = <a e v>;
@@ -244,7 +310,8 @@ $correctDiffResult = [
                        ['+', '',  'x'],
                      ];
 @result = sdiff(@a, @b);
-ok(@result eq $correctDiffResult);
+is(@result, $correctDiffResult,
+  'sdiff() output ok, various corner cases');
 
 #################################################
 @a=();
@@ -255,7 +322,8 @@ $correctDiffResult = [
                        ['+', '', 'c' ],
                      ];
 @result = sdiff(@a, @b);
-ok(@result eq $correctDiffResult);
+is(@result, $correctDiffResult,
+  'sdiff() output ok, various corner cases');
 
 #################################################
 @a = <a b c>;
@@ -266,7 +334,8 @@ $correctDiffResult = [
                        ['-', 'c', '' ],
                      ];
 @result = sdiff(@a, @b);
-ok(@result eq $correctDiffResult);
+is(@result, $correctDiffResult,
+  'sdiff() output ok, various corner cases');
 
 #################################################
 @a = <a b c>;
@@ -277,7 +346,8 @@ $correctDiffResult = [
                        ['-', 'c', '' ],
                      ];
 @result = sdiff(@a, @b);
-ok(@result eq $correctDiffResult);
+is(@result, $correctDiffResult,
+  'sdiff() output ok, various corner cases');
 
 #################################################
 @a = <a b c>;
@@ -288,7 +358,8 @@ $correctDiffResult = [
                        ['u', 'c', 'c' ],
                      ];
 @result = sdiff(@a, @b);
-ok(@result eq $correctDiffResult);
+is(@result, $correctDiffResult,
+  'sdiff() output ok, various corner cases');
 
 #################################################
 @a = <a b c>;
@@ -301,7 +372,8 @@ traverse_balanced( @a, @b,
                    CHANGE    => sub { $r ~= "C " ~@_;},
                     );
 
-ok($r eq  "M 0 0C 1 1M 2 2");
+is($r, "M 0 0C 1 1M 2 2",
+  "traverse_balanced() output ok" );
 
 #################################################
 #No CHANGE callback => use discard_a/b instead
@@ -313,7 +385,8 @@ traverse_balanced( @a, @b,
                    DISCARD_A => sub { $r ~= "DA " ~@_;},
                    DISCARD_B => sub { $r ~= "DB " ~@_;},
                    );
-ok($r eq  "M 0 0DA 1 1DB 2 1M 2 2");
+is($r, "M 0 0DA 1 1DB 2 1M 2 2",
+  "traverse_balanced() with no CHANGE callback output ok");
 
 #################################################
 @a = <a x y c>;
@@ -325,7 +398,22 @@ traverse_balanced( @a, @b,
                    DISCARD_B => sub { $r ~= "DB " ~@_;},
                    CHANGE    => sub { $r ~= "C " ~@_;},
                    );
-ok($r eq  "M 0 0C 1 1C 2 2M 3 3");
+is($r, "M 0 0C 1 1C 2 2M 3 3",
+  "traverse_balanced() output ok, various corner cases");
+
+
+#################################################
+@a = <a x y c>;
+@b = <a v c>;
+$r = "";
+traverse_balanced( @a, @b, 
+                   MATCH     => sub { $r ~= "M " ~@_;},
+                   DISCARD_A => sub { $r ~= "DA " ~@_;},
+                   DISCARD_B => sub { $r ~= "DB " ~@_;},
+                   CHANGE    => sub { $r ~= "C " ~@_;},
+                   );
+is($r, "M 0 0C 1 1DA 2 2M 3 2",
+  "traverse_balanced() output ok, various corner cases");
 
 #################################################
 @a = <x y c>;
@@ -337,7 +425,8 @@ traverse_balanced( @a, @b,
                    DISCARD_B => sub { $r ~= "DB " ~@_;},
                    CHANGE    => sub { $r ~= "C " ~@_;},
                    );
-ok($r eq  "C 0 0C 1 1M 2 2");
+is($r,  "C 0 0C 1 1M 2 2",
+  "traverse_balanced() output ok, various corner cases");
 
 #################################################
 @a = <a x y z>;
@@ -349,7 +438,8 @@ traverse_balanced( @a, @b,
                    DISCARD_B => sub { $r ~= "DB " ~@_;},
                    CHANGE    => sub { $r ~= "C " ~@_;},
                    );
-ok($r eq  "C 0 0C 1 1C 2 2DA 3 3");
+is($r, "C 0 0C 1 1C 2 2DA 3 3",
+  "traverse_balanced() output ok, various corner cases");
 
 #################################################
 @a = <a z>;
@@ -361,7 +451,8 @@ traverse_balanced( @a, @b,
                    DISCARD_B => sub { $r ~= "DB " ~@_;},
                    CHANGE    => sub { $r ~= "C " ~@_;},
                    );
-ok($r eq  "M 0 0DA 1 1");
+is($r, "M 0 0DA 1 1",
+  "traverse_balanced() output ok, various corner cases");
 
 #################################################
 @a = <z a>;
@@ -373,7 +464,8 @@ traverse_balanced( @a, @b,
                    DISCARD_B => sub { $r ~= "DB " ~@_;},
                    CHANGE    => sub { $r ~= "C " ~@_;},
                    );
-ok($r eq  "DA 0 0M 1 0");
+is($r, "DA 0 0M 1 0",
+  "traverse_balanced() output ok, various corner cases");
 
 #################################################
 @a = <a b c>;
@@ -385,4 +477,5 @@ traverse_balanced( @a, @b,
                    DISCARD_B => sub { $r ~= "DB " ~@_;},
                    CHANGE    => sub { $r ~= "C " ~@_;},
                    );
- ok($r eq  "C 0 0C 1 1C 2 2");
+is($r, "C 0 0C 1 1C 2 2",
+  "traverse_balanced() output ok, various corner cases");
