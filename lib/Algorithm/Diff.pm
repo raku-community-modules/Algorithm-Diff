@@ -221,7 +221,8 @@ sub _longestCommonSubsequence(@a,@b,$counting?,$keyGen? is rw,*@leftover) is exp
      	}
 	if (@thresh)
      	{
-        	return $prunedCount + @thresh.elems()-1 if $counting;
+                return $prunedCount + @thresh if $counting;
+                
          	loop ( my $link = @links[@thresh.elems()-1] ; $link ; $link = $link[0] )
          	{
              		@matchVector[ $link[1] ] = $link[2];

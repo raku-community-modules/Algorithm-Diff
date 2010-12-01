@@ -1,4 +1,5 @@
 diff.pl
+cdiff.pl
 lib/Algorithm/Diff.pm       Algorithm::Diff perl module
 MANIFEST
 README
