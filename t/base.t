@@ -1,6 +1,6 @@
 use v6;
 use Test;
-plan 46;
+plan 50;
 
 use Algorithm::Diff;
 
@@ -28,7 +28,7 @@ $i =  Algorithm::Diff::_replaceNextLargerWith( @d, 6, $h );
 is( ~@d, '0 3 6 8 10 11',
   "_replaceNextLargerWith() doesn't change array for already seen elements");
 ok( !$i.defined,
-  "_replaceNextLargerWith() returns undefined index for already seen elements");
+  "_replaceNextLargerWith() returns undef index for already seen elements");
 
 
 my @a = <a b c e h j l m n p>;
@@ -91,7 +91,7 @@ sub finished_b
     $finishedB = $b;
 }
 
-traverse_sequences(@a,@b,
+traverse_sequences(@a, @b,
     MATCH     => &match,
     DISCARD_A => &discard_a,
     DISCARD_B => &discard_b
@@ -118,24 +118,16 @@ traverse_sequences(@a,@b,
 );
 
 is( ~@matchedA, $correctResult,
-  "traverse_sequences() with finished callback returns expected matches for @a");
+  "traverse_sequences() w/finished callback gives expected matches for @a");
 is( ~@matchedB, $correctResult,
-  "traverse_sequences() with finished callback returns expected matches for @b");
+  "traverse_sequences() w/finished callback gives expected matches for @b");
 is( ~@discardsA, $skippedA,
-  "traverse_sequences() with finished callback returns expected skips for @a");
+  "traverse_sequences() w/finished callback gives expected skips for @a");
 is( ~@discardsB, $skippedB,
-  "traverse_sequences() with finished callback returns expected skips for @b");
+  "traverse_sequences() w/finished callback gives expected skips for @b");
 is( $finishedA, 9, "traverse_sequences() index of finishedA is as expected" );
 ok( !$finishedB.defined,
   "traverse_sequences() index of finishedB is as expected" );
-
-
-my @lcs = LCS( @a, @b );
-is( ~@lcs, $correctResult,
-  "LCS() returns expected result" );
-
-is(LCS_length( @a, @b ), +@lcs,
-  'LCS_length() returns expected result' );
 
 ########################################################
 
@@ -162,6 +154,35 @@ my $correctDiffResult = [
 
 is( $diff, $correctDiffResult,
   'diff() returns expected output');
+
+
+my @lcs = LCS( @a, @b );
+is( ~@lcs, $correctResult,
+  "LCS() returns expected result" );
+
+is(LCS_length( @a, @b ), +@lcs,
+  'LCS_length() returns expected result' );
+
+my $keygen = sub { @_[0].uc };
+my @au = @a>>.uc;
+my %hash =  prepare(@b);
+
+@lcs = LCS( @a, %hash );
+is( ~@lcs, $correctResult,
+  "LCS() with prepare returns expected result" );
+
+@lcs = LCS( %hash, @a );
+is( ~@lcs, $correctResult,
+  "LCS() with prepare returns expected result" );
+
+
+@lcs = LCS( @au, @b, $keygen );
+is( ~@lcs, $correctResult.uc,
+  "LCS() with keygen returns expected result" );
+
+@lcs = LCS( @au, prepare(@b>>.uc), $keygen );
+is( ~@lcs, $correctResult.uc,
+  "LCS() with prepare and keygen returns expected result" );
 
 ########################################################################
 # Compare the compact_diff output with the one
