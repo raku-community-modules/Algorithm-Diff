@@ -1,31 +1,35 @@
 module Algorithm::Diff {
-    
+
+# default key generator to use in the most common case:
+# comparison of two strings
+
+my &default_keyGen = sub { @_[0] };
 
 # # McIlroy-Hunt diff algorithm
 # # Adapted from the Smalltalk code of Mario I. Wolczko, <mario@wolczko.com>
 # # by Ned Konz, perl@bike-nomad.com
 # # Updates by Tye McQueen, http://perlmonks.org/?node=tye
+#
+# Perl 6 port by takadonet.
+# Additional porting by thundergnat.
 
-# # Create a hash that maps each element of @aCollection to the set of
-# # positions it occupies in @aCollection, restricted to the elements
-# # within the range of indexes specified by $start and $end.
-# # The fourth parameter is a subroutine reference that will be called to
-# # generate a string to use as a key.
-# #
+# Create a hash that maps each element of @aCollection to the set of
+# positions it occupies in @aCollection, restricted to the elements
+# within the range of indexes specified by $start and $end.
+# The fourth parameter is a subroutine reference that will be called to
+# generate a string to use as a key.
+#
+# my %hash = _withPositionsOfInInterval( @array, $start, $end, &keyGen );
 
-
-sub _withPositionsOfInInterval( @aCollection, $start, $end, $keyGen )
+sub _withPositionsOfInInterval( @aCollection, $start, $end, &keyGen )
 {
-    #todo make type constraint for $keyGen  to Code $keygen
     my %d;
-
     for ( $start .. $end ) -> $index
     {
         my $element = @aCollection[$index];
-        my $key = $keyGen($element);
+        my $key = &keyGen($element);
         if ( %d.exists($key) )
         {
-            #unshift ( @{ $d{$key} }, $index );
             %d{$key}.unshift( $index );
         }
         else
@@ -36,19 +40,21 @@ sub _withPositionsOfInInterval( @aCollection, $start, $end, $keyGen )
     return %d;
 }
 
-# # Find the place at which aValue would normally be inserted into the
-# # array. If that place is already occupied by aValue, do nothing, and
-# # return undef. If the place does not exist (i.e., it is off the end of
-# # the array), add it to the end, otherwise replace the element at that
-# # point with aValue.  It is assumed that the array's values are numeric.
-# # This is where the bulk (75%) of the time is spent in this module, so
-# # try to make it fast!
+
+# Find the place at which aValue would normally be inserted into the
+# array. If that place is already occupied by aValue, do nothing, and
+# return undef. If the place does not exist (i.e., it is off the end of
+# the array), add it to the end, otherwise replace the element at that
+# point with aValue.  It is assumed that the array's values are numeric.
+# This is where the bulk (75%) of the time is spent in this module, so
+# try to make it fast!
+
 our sub _replaceNextLargerWith( @array is rw, $aValue, $high is copy )
 {
     $high ||= +@array-1;
 
     # off the end?
-    if  $high == -1 || $aValue > @array[*-1] 
+    if  $high == -1 || $aValue > @array[*-1]
     {
         @array.push($aValue);
         return $high + 1;
@@ -60,9 +66,7 @@ our sub _replaceNextLargerWith( @array is rw, $aValue, $high is copy )
     my $found;
     while  $low <= $high
     {
-		#$index = ( $high + $low ) / 2;
-
-        $index = (( $high + $low ) / 2).Int;  # without 'use integer'
+        $index = (( $high + $low ) / 2).Int;
         $found = @array[$index];
 
         if ( $aValue == $found )
@@ -84,34 +88,40 @@ our sub _replaceNextLargerWith( @array is rw, $aValue, $high is copy )
     return $low;
 }
 
-# # This method computes the longest common subsequence in @a and @b.
+# This method computes the longest common subsequence in @a and @b.
 
-# # Result is array whose contents is such that
-# #   @a[ $i ] == @b[ @result[ $i ] ]
-# # foreach $i in ( 0 .. ^@result ) if @result[ $i ] is defined.
+# Result is array whose contents is such that
+#   @a[ $i ] == @b[ @result[ $i ] ]
+# foreach $i in ( 0 .. ^@result ) if @result[ $i ] is defined.
 
-# # An additional argument may be passed; this is a hash or key generating
-# # function that should return a string that uniquely identifies the given
-# # element.  It should be the case that if the key is the same, the elements
-# # will compare the same. If this parameter is undef or missing, the key
-# # will be the element as a string.
+# An additional argument may be passed; this is a hash or key generating
+# function that should return a string that uniquely identifies the given
+# element.  It should be the case that if the key is the same, the elements
+# will compare the same. If this parameter is undef or missing, the key
+# will be the element as a string.
 
-# # By default, comparisons will use "eq" and elements will be turned into keys
-# # using the default stringizing operator '""'.
+# By default, comparisons will use "eq" and elements will be turned into keys
+# using the default stringizing operator '""'.
 
+# if passed two arrays, trim any leading or trailing common elements, then
+# process (&prepare) the second array to a hash and redispatch
 
-our sub _longestCommonSubsequence( @a, @b, $counting?, $keyGen?  )
+our multi sub _longestCommonSubsequence(
+    @a,
+    @b,
+    $counting = 0,
+    &keyGen = &default_keyGen
+)
 {
-
-    my &compare;                  # code ref
-    my &keyGen = $keyGen;
-    if ( !defined( &keyGen ) )    # optimize for strings
+    my &compare;
+    if (&keyGen eq &default_keyGen)
     {
-        &keyGen = sub { return shift @_ };
+        # most common case - string comparison
         &compare = sub ( $a, $b ) { $a eq $b };
     }
     else
-    {
+    { 
+        # build a custom comparitor
         &compare = sub ( $a, $b ) { &keyGen( $a ) eq &keyGen( $b ) };
     }
 
@@ -123,16 +133,16 @@ our sub _longestCommonSubsequence( @a, @b, $counting?, $keyGen?  )
     # First we prune off any common elements at the beginning
     while  $aStart <= $aFinish
         and $bStart <= $bFinish
-        and &compare.( @a[$aStart], @b[$bStart])
+        and &compare( @a[$aStart], @b[$bStart])
     {
-            @matchVector[ $aStart++ ] = $bStart++;
-            $prunedCount++;
+         @matchVector[ $aStart++ ] = $bStart++;
+         $prunedCount++;
     }
 
     # now the end
     while  $aStart <= $aFinish
         and $bStart <= $bFinish
-        and &compare.( @a[$aFinish], @b[$bFinish] ) 
+        and &compare( @a[$aFinish], @b[$bFinish] )
     {
             @matchVector[ $aFinish-- ] = $bFinish--;
             $prunedCount++;
@@ -141,17 +151,40 @@ our sub _longestCommonSubsequence( @a, @b, $counting?, $keyGen?  )
     # Now compute the equivalence classes of positions of elements
     %bMatches = _withPositionsOfInInterval( @b, $bStart, $bFinish, &keyGen);
 
-    my @thresh;
-    my @links;
+    # and redispatch
+    return _longestCommonSubsequence(
+        @a,
+        %bMatches,
+        $counting,
+        &keyGen,
+        PRUNED  => $prunedCount,
+        ASTART  => $aStart,
+        AFINISH => $aFinish,
+        MATCHVEC => @matchVector
+    );
+}
 
-    my ( $ai, $k );
+
+our multi sub _longestCommonSubsequence(
+    @a,
+    %bMatches,
+    $counting = 0,
+    &keyGen = &default_keyGen,
+    :PRUNED( $prunedCount ),
+    :ASTART( $aStart ) = 0,
+    :AFINISH( $aFinish ) = +@a-1,
+    :MATCHVEC( @matchVector ) = []
+)
+{
+    my ( @thresh, @links, $ai );
     for ( $aStart .. ^$aFinish ) -> $i
     {
-         $ai = &keyGen.( @a[$i] );
-         if (  %bMatches.exists($ai) )
+         $ai = &keyGen( @a[$i] );
+
+         if ( %bMatches.exists($ai) )
          {
-             $k = 0;
-             for  @( %bMatches{$ai} ) -> $j
+             my $k;
+             for @( %bMatches{$ai} ) -> $j
              {
                  # optimization: most of the time this will be true
                  if ( $k and @thresh[$k] > $j and @thresh[ $k - 1 ] < $j )
@@ -164,10 +197,10 @@ our sub _longestCommonSubsequence( @a, @b, $counting?, $keyGen?  )
                  }
 
                  # oddly, it's faster to always test this (CPU cache?).
-                 # (is this still true for perl6?)
+                 # ( still true for perl6? need to test. )
                  if ( $k.defined )
                  {
-                      if $k 
+                      if $k
                       {
                            @links[$k] = [  @links[ $k - 1 ] , $i, $j ];
                       }
@@ -194,219 +227,220 @@ our sub _longestCommonSubsequence( @a, @b, $counting?, $keyGen?  )
     return @matchVector;
 }
 
-sub traverse_sequences( @a, @b, $keyGen?,
-    :MATCH( $match ),
-    :DISCARD_A( $discard_a ),
-    :DISCARD_B( $discard_b ),
-    :A_FINISHED( $finished_a ) is copy,
-    :B_FINISHED( $finished_b ) is copy
-    ) is export
+
+sub traverse_sequences(
+    @a,
+    @b,
+    &keyGen = &default_keyGen,
+    :MATCH( &match ),
+    :DISCARD_A( &discard_a ),
+    :DISCARD_B( &discard_b ),
+    :A_FINISHED( &finished_a ) is copy,
+    :B_FINISHED( &finished_b ) is copy
+) is export
 {
 
-    my @matchVector = _longestCommonSubsequence( @a, @b, 0, $keyGen );
+    my @matchVector = _longestCommonSubsequence( @a, @b, 0, &keyGen );
 
-   # Process all the lines in @matchVector
-    my $lastA = +@a-1;
-    my $lastB = +@b-1;
-    my $bi    = 0;
+    my ( $lastA, $lastB, $bi ) = ( +@a-1, +@b-1, 0 );
     my $ai;
-    
-    loop ( $ai = 0 ; $ai <= +@matchVector-1 ; $ai++ )
+
+    # Process all the elements in @matchVector
+    loop ( $ai = 0 ; $ai < +@matchVector ; $ai++ )
     {
         my $bLine = @matchVector[$ai];
         if $bLine.defined     # matched
         {
-             $discard_b.( $ai, $bi++ ) while $bi < $bLine;
-             $match.( $ai, $bi++ );
+             &discard_b( $ai, $bi++ ) while $bi < $bLine;
+             &match( $ai, $bi++ );
         }
         else
         {
-             $discard_a.( $ai, $bi);
+             &discard_a( $ai, $bi );
         }
     }
-    
+
     # The last entry (if any) processed was a match.
     # $ai and $bi point just past the last matching lines in their sequences.
-    
-    while  $ai <= $lastA or $bi <= $lastB 
+
+    while  $ai <= $lastA or $bi <= $lastB
     {
         # last A?
-        if  $ai == $lastA + 1 and $bi <= $lastB 
+        if  $ai == $lastA + 1 and $bi <= $lastB
         {
-            if ( $finished_a.defined )
+            if ( &finished_a.defined )
             {
-                $finished_a.( $lastA );
-                $finished_a = Mu;
+                &finished_a( $lastA );
+                &finished_a = {};
             }
             else
             {
-                $discard_b.( $ai, $bi++ ) while $bi <= $lastB;
+                &discard_b( $ai, $bi++ ) while $bi <= $lastB;
             }
         }
 
         # last B?
         if ( $bi == $lastB + 1 and $ai <= $lastA )
         {
-            if ( $finished_b.defined )
+            if ( &finished_b.defined )
             {
-                $finished_b.( $lastB );
-                $finished_b = Mu;
+                &finished_b( $lastB );
+                &finished_b = {};
             }
             else
             {
-                $discard_a.( $ai++, $bi ) while $ai <= $lastA;
+                &discard_a( $ai++, $bi ) while $ai <= $lastA;
             }
         }
 
-        $discard_a.( $ai++, $bi ) if $ai <= $lastA;
-        $discard_b.( $ai, $bi++ ) if $bi <= $lastB;
+        &discard_a( $ai++, $bi ) if $ai <= $lastA;
+        &discard_b( $ai, $bi++ ) if $bi <= $lastB;
     }
-
     return 1;
 }
 
-sub traverse_balanced(@a, @b, $keyGen?,
-    :MATCH( $match ),
-    :DISCARD_A( $discard_a ),
-    :DISCARD_B( $discard_b ),
-    :CHANGE( $change )
-    ) is export
-{ 
-    my @matchVector = _longestCommonSubsequence( @a, @b, 0, $keyGen );
-    # Process all the lines in match vector
-    my $lastA = +@a-1;
-    my $lastB = +@b-1;
-    my $bi    = 0;
-    my $ai    = 0;
-    my $ma    = -1;
+sub traverse_balanced(
+    @a,
+    @b,
+    &keyGen = &default_keyGen,
+    :MATCH( &match ),
+    :DISCARD_A( &discard_a ),
+    :DISCARD_B( &discard_b ),
+    :CHANGE( &change )
+) is export
+{
+    my @matchVector = _longestCommonSubsequence( @a, @b, 0, &keyGen );
+
+    my ( $lastA, $lastB ) = ( +@a-1, +@b-1);
+    my ( $bi, $ai, $ma )  = ( 0, 0, -1 );
     my $mb;
 
+    # Process all the elements in @matchVector
     while ( 1 )
     {
-
         # Find next match indices $ma and $mb
         repeat {
             $ma++;
         } while
-                $ma <= +@matchVector-1
+                $ma < +@matchVector
             &&  !(@matchVector[$ma].defined);
 
-        last if $ma > +@matchVector-1;    # end of matchVector?
+        last if $ma >= +@matchVector;    # end of matchVector?
         $mb = @matchVector[$ma];
 
-        # Proceed with discard a/b or change events until
-        # next match
-        while  $ai < $ma || $bi < $mb 
+        # Proceed with discard a/b or change
+		# events until next match
+        while  $ai < $ma || $bi < $mb
         {
-
-            if  $ai < $ma && $bi < $mb 
+            if  $ai < $ma && $bi < $mb
             {
-
                 # Change
-                if ( $change.defined )
+                if ( &change.defined )
                 {
-                    $change.( $ai++, $bi++);
+                    &change( $ai++, $bi++);
                 }
                 else
                 {
-                    $discard_a( $ai++, $bi);
-                    $discard_b( $ai, $bi++);
+                    &discard_a( $ai++, $bi);
+                    &discard_b( $ai, $bi++);
                 }
             }
-            elsif  $ai < $ma 
+            elsif  $ai < $ma
             {
-                $discard_a.( $ai++, $bi);
+                &discard_a( $ai++, $bi);
             }
             else
             {
                 # $bi < $mb
-                $discard_b( $ai, $bi++);
+                &discard_b( $ai, $bi++);
             }
         }
-
         # Match
-        $match.( $ai++, $bi++ );
+        &match( $ai++, $bi++ );
     }
 
-        while  $ai <= $lastA || $bi <= $lastB 
+    while  $ai <= $lastA || $bi <= $lastB
+    {
+        if  $ai <= $lastA && $bi <= $lastB
         {
-            if  $ai <= $lastA && $bi <= $lastB 
+            # Change
+            if &change.defined
             {
-                # Change
-                if $change.defined
-                {
-                     $change.( $ai++, $bi++);
-                }
-                else
-                {
-                    $discard_a.( $ai++, $bi);
-                    $discard_b.( $ai, $bi++);
-                }
-            }
-            elsif  $ai <= $lastA 
-            {
-                $discard_a( $ai++, $bi);
+                 &change( $ai++, $bi++);
             }
             else
             {
-                # $bi <= $lastB
-                $discard_b( $ai, $bi++);
+                &discard_a( $ai++, $bi);
+                &discard_b( $ai, $bi++);
             }
         }
-
-        return 1;
-}
-
-# sub prepare
-# {
-#     my $a       = shift;    # array ref
-#     my $keyGen  = shift;    # code ref
-
-#     # set up code ref
-#     $keyGen = sub { $_[0] } unless defined($keyGen);
-
-#     return scalar _withPositionsOfInInterval( $a, 0, $#$a, $keyGen, @_ );
-# }
-
-sub LCS( @a, @b, $keyGen? ) is export
-{
-    my @matchVector = _longestCommonSubsequence( @a, @b, 0, $keyGen);
-    my @retval;
-    for ^@matchVector -> $i;
-    {
-        @retval.push(@a[$i]) if @matchVector[$i].defined;
+        elsif  $ai <= $lastA
+        {
+            &discard_a( $ai++, $bi);
+        }
+        else
+        {
+            # $bi <= $lastB
+            &discard_b( $ai, $bi++);
+        }
     }
-    return @retval;
+    return 1;
 }
 
-sub LCS_length( @a, @b, $keyGen? ) is export
+sub prepare ( @a, &keyGen = &default_keyGen ) is export
 {
-    return _longestCommonSubsequence( @a, @b, 1, $keyGen );
+    return _withPositionsOfInInterval( @a, 0, +@a-1, &keyGen );
 }
 
-sub LCSidx( @a, @b, $keyGen? ) is export
+
+multi sub LCS( @a, @b, &keyGen = &default_keyGen ) is export
 {
-     my @match = _longestCommonSubsequence( @a, @b, 0, $keyGen );
-     my $am = (^@match).grep: { @match[$^a].defined };
-     my $bm = @match[$am];
-     # returns list references
-     return ($am, $bm);
+    my @matchVector = _longestCommonSubsequence( @a, @b, 0, &keyGen);
+    return @a[(^@matchVector).grep: { @matchVector[$^a].defined }];
 }
 
-sub compact_diff( @a, @b, $keyGen? ) is export
+
+multi sub LCS( @a, %b, &keyGen = &default_keyGen ) is export
 {
-     my ( $am, $bm ) = LCSidx( @a, @b, $keyGen );
+    my @matchVector = _longestCommonSubsequence( @a, %b, 0, &keyGen);
+    return @a[(^@matchVector).grep: { @matchVector[$^a].defined }];
+}
+
+multi sub LCS( %b, @a, &keyGen = &default_keyGen ) is export
+{
+   return LCS( @a, %b, &keyGen )
+}
+
+
+sub LCS_length( @a, @b, &keyGen = &default_keyGen ) is export
+{
+    return _longestCommonSubsequence( @a, @b, 1, &keyGen );
+}
+
+
+sub LCSidx( @a, @b, &keyGen = &default_keyGen ) is export
+{
+     my @match = _longestCommonSubsequence( @a, @b, 0, &keyGen );
+     my $amatch_indices = (^@match).grep: { @match[$^a].defined };
+     my $bmatch_indices = @match[$amatch_indices];
+     # return list references, @arrays will flatten
+     return ($amatch_indices, $bmatch_indices);
+}
+
+sub compact_diff( @a, @b, &keyGen = &default_keyGen ) is export
+{
+     my ( $am, $bm ) = LCSidx( @a, @b, &keyGen );
      my @cdiff;
      my ( $ai, $bi ) = ( 0, 0 );
      push @cdiff, $ai, $bi;
      while ( 1 )
-	 {
+     {
          while(  $am  &&  $ai == $am[0]  &&  $bi == $bm[0]  )
-		 {
+         {
              shift $am;
              shift $bm;
              ++$ai, ++$bi;
-         }
+          }
          push @cdiff, $ai, $bi;
          last if !$am;
          $ai = $am[0];
@@ -420,54 +454,25 @@ sub compact_diff( @a, @b, $keyGen? ) is export
 
 sub diff( @a, @b ) is export
 {
-    my @retval;
-    my @hunk;
-    my $discard = sub {
-            my ( $x, $y ) = @_;
-            @hunk.push( [ '-', $x, @a[ $x ] ]);
-        };
-    my $add = sub {
-            my ( $x, $y ) = @_;
-            @hunk.push( [ '+', $y, @b[ $y ] ]);
-        };
-    my $match = sub {
-            my ( $x, $y ) = @_;
-            @retval.push(@hunk) if 0 < +@hunk;
-            @hunk = ();
-        };
-    traverse_sequences( @a, @b, MATCH => $match, DISCARD_A => $discard, DISCARD_B => $add );
-    $match();
-
-    return @retval;
+    my ( @retval, @hunk );
+    traverse_sequences(
+      @a, @b,
+      MATCH     => sub ($x,$y) { @retval.push( @hunk ); @hunk = ()   },
+      DISCARD_A => sub ($x,$y) { @hunk.push( [ '-', $x, @a[ $x ] ] ) },
+      DISCARD_B => sub ($x,$y) { @hunk.push( [ '+', $y, @b[ $y ] ] ) }
+    );
+    return @retval, @hunk;
 }
 
 sub sdiff( @a, @b ) is export
 {
     my @retval;
-    my $discard = sub {
-            my $x = shift @_;
-            @retval.push( [ '-', @a[ $x ], "" ] )
-        };
-        
-    my $add = sub {
-            my ( $x, $y ) = @_;
-            @retval.push( [ '+', "", @b[ $y ] ] )
-        };
-        
-    my $change = sub {
-            my ( $x, $y ) = @_;
-            @retval.push( [ 'c', @a[ $x ], @b[ $y ] ] );
-        };
-    my $match = sub {
-            my ( $x, $y ) = @_;
-            @retval.push( [ 'u', @a[ $x ], @b[ $y ] ] );
-        };
-
-    traverse_balanced( @a, @b,
-            MATCH     => $match,
-            DISCARD_A => $discard,
-            DISCARD_B => $add,
-            CHANGE    => $change,
+    traverse_balanced(
+      @a, @b,
+      MATCH     => sub ($x,$y) { @retval.push( [ 'u', @a[ $x ], @b[ $y ] ] ) },
+      DISCARD_A => sub ($x,$y) { @retval.push( [ '-', @a[ $x ],    ''    ] ) },
+      DISCARD_B => sub ($x,$y) { @retval.push( [ '+',    ''   , @b[ $y ] ] ) },
+      CHANGE    => sub ($x,$y) { @retval.push( [ 'c', @a[ $x ], @b[ $y ] ] ) }
     );
     return @retval;
 }
@@ -873,7 +878,7 @@ sub sdiff( @a, @b ) is export
 # reference to a key generation function.  See L</KEY GENERATION
 # FUNCTIONS>.
 
-#     @lcs    = LCS( @seq1, @seq2, &keyGen );
+#     @lcs    = LCS( @seq1, @seq2, $keyGen );
 
 
 # =head2 C<LCS_length>
@@ -1162,10 +1167,10 @@ sub sdiff( @a, @b ) is export
 # reference to a key generation function.  See L</KEY GENERATION
 # FUNCTIONS>.
 
-#     $prep = prepare( \@seq1, \&keyGen );
+#     $prep = prepare( \@seq1, \$keyGen );
 #     for $i ( 0 .. 10_000 )
 #     {
-#         @lcs = LCS( $seq[$i], $prep, \&keyGen );
+#         @lcs = LCS( $seq[$i], $prep, \$keyGen );
 #         # do something useful with @lcs
 #     }
 
@@ -1398,7 +1403,7 @@ sub sdiff( @a, @b ) is export
 # use).
 
 # Imagine that there are two arrows.  Arrow A points to an element of
-# sequence A, and arrow B points to an element of the sequence B. 
+# sequence A, and arrow B points to an element of the sequence B.
 # Initially, the arrows point to the first elements of the respective
 # sequences.  C<traverse_sequences> will advance the arrows through the
 # sequences one element at a time, calling an appropriate user-specified
@@ -1439,9 +1444,9 @@ sub sdiff( @a, @b ) is export
 # If arrow A reaches the end of its sequence, before arrow B does,
 # C<traverse_sequences> will call the C<A_FINISHED> callback when it
 # advances arrow B, if there is such a function; if not it will call
-# C<DISCARD_B> instead.  Similarly if arrow B finishes first. 
+# C<DISCARD_B> instead.  Similarly if arrow B finishes first.
 # C<traverse_sequences> returns when both arrows are at the ends of their
-# respective sequences.  It returns true on success and false on failure. 
+# respective sequences.  It returns true on success and false on failure.
 # At present there is no way to fail.
 
 # C<traverse_sequences> may be passed an optional fourth parameter; this
@@ -1498,7 +1503,7 @@ sub sdiff( @a, @b ) is export
 # C<traverse_balanced> might be a bit slower than C<traverse_sequences>,
 # noticable only while processing huge amounts of data.
 
-# The C<sdiff> function of this module 
+# The C<sdiff> function of this module
 # is implemented as call to C<traverse_balanced>.
 
 # C<traverse_balanced> does not have a useful return value; you are expected to
