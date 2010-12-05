@@ -1,6 +1,6 @@
 use v6;
 use Test;
-plan 50;
+plan 61;
 
 use Algorithm::Diff;
 
@@ -183,6 +183,34 @@ is( ~@lcs, $correctResult.uc,
 @lcs = LCS( @au, prepare(@b>>.uc), $keygen );
 is( ~@lcs, $correctResult.uc,
   "LCS() with prepare and keygen returns expected result" );
+
+########################################################################
+# Exercise LCS (which in turn calls _longestCommonSubsequence,
+# _replaceNextLargerWith & _withPositionsOfInInterval ) with 
+# various corner cases.
+#
+
+my $count = 1;
+for (
+     [ "a b c   e  h j   l m n p", "  b c d e f  j k l m    r s t", "b c e j l m" ],
+     [ "", "", "" ],
+     [ "a b c", "", "" ],
+     [ "", "a b c d", "" ],
+     [ "a b", "x y z", "" ],
+     [ "    c  e   h j   l m n p r", "a b c d f g  j k l m      s t", "c j l m" ],
+     [ "a b c d", "a b c d", "a b c d" ],
+     [ "a     d", "a b c d", "a d" ],
+     [ "a b c d", "a     d", "a d" ],
+     [ "a b c d", "  b c  ", "b c" ],
+     [ "  b c  ",  "a b c d", "b c" ],
+     ) -> @group
+{
+    my ( $a, $b, $check ) = @group;
+    @a = $a.comb(/ \S+ /);
+    @b = $b.comb(/ \S+ /);
+    is( ~LCS(@a,@b), $check, "Excercise LCS with various corner cases: #$count");
+    $count++;
+}
 
 ########################################################################
 # Compare the compact_diff output with the one
