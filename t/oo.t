@@ -1,203 +1,165 @@
 use v6;
 use Test;
-plan 0;
-#plan 969;
-BEGIN
+
+plan 779;
+   
+# Before 'make install' is performed this script should be runnable with
+# 'make test'. After 'make install' it should work as 'perl6 oo.t'
+
+use Algorithm::Diff;
+
+my $undef;
+
+my( $a, $b, $hunks );
+for (
+     [ "a b c   e  h j   l m n p", "  b c d e f  j k l m    r s t", 9 ],
+     [ "", "", 0 ],
+     [ "a b c", "", 1 ],
+     [ "", "a b c d", 1 ],
+     [ "a b", "x y z", 1 ],
+     [ "    c  e   h j   l m n p r", "a b c d f g  j k l m      s t", 7 ],
+     [ "a b c d", "a b c d", 1 ],
+     [ "a     d", "a b c d", 3 ],
+     [ "a b c d", "a     d", 3 ],
+     [ "a b c d", "  b c  ", 3 ],
+     [ "  b c  ",  "a b c d", 3 ],
+     ) -> @pair
 {
-    @*INC.push('lib');
-    @*INC.push('blib');
+
+    ( $a, $b, $hunks ) = @pair;
+    my @a = $a.comb(/ \S+ /);
+    my @b = $b.comb(/ \S+ /);
+
+    my $d = Algorithm::Diff.new( @a, @b );
+
+#    ('-' x 79).say;
+#    say "Sequence A: ",$a;
+#    say "Sequence B: ",$b;
+#    $d.perl.say;
+#    ('-' x 79).say;
+
+    is( $d.Base,         0, 'call Base with nothing' );
+    is( $d.Base($undef), 0, 'call Base with undef' );
+    is( $d.Base(1),      0, 'call Base with 1' );
+    is( $d.Base($undef), 1, 'call Base with undef' );
+    is( $d.Base(0),      1, 'call Base with 0' );
+
+    dies_ok( { $d.Diff     }, "dies properly on invalid Diff");
+    dies_ok( { $d.Same     }, "dies properly on invalid Same" );
+    dies_ok( { $d.Items    }, "dies properly on invalid Items" );
+    dies_ok( { $d.Range(2) }, "dies properly on invalid Range" );
+    dies_ok( { $d.Min(1)   }, "dies properly on invalid Min" );
+    dies_ok( { $d.Max(2)   }, "dies properly on invalid Max" );
+
+    is( $d.Next(0),      0, 'call Next with 0' );
+    dies_ok( { $d.Same },   'dies properly on invalid Same' );
+    is( $d.Next,         1, 'call Next with 0' )      if  0 < $hunks;
+    is( $d.Next($undef), 2, 'call Next with undef' )  if  1 < $hunks;
+    is( $d.Next(1),      3, 'call Next with 1' )      if  2 < $hunks;
+    is( $d.Next(-1),     2, 'call Next with -1' )     if  1 < $hunks;
+    is( $d.Next(-2),     0, 'call Next with -2' );
+    dies_ok( { $d.Same }, "dies properly on invalid Same" );
+
+    is( $d.Prev(0),       0, 'Prev with 0' );
+    dies_ok( { $d.Same },    'dies properly on invalid Same' );
+    is( $d.Prev,         -1, 'call Prev with nothing' )   if  0 < $hunks;
+    is( $d.Prev($undef), -2, 'call Prev with undef' )     if  1 < $hunks;
+    is( $d.Prev(1),      -3, 'call Prev with 1' )         if  2 < $hunks;
+    is( $d.Prev(-1),     -2, 'call Prev with -1' )        if  1 < $hunks;
+    is( $d.Prev(-2),      0, 'call Prev with -2' );
+
+    is( $d.Next,    1, 'call Next with default' ) if  0 < $hunks;
+    is( $d.Prev,    0, 'call Prev with default' );
+    is( $d.Next,    1, 'call Next with default' ) if  0 < $hunks;
+    is( $d.Prev(2), 0, 'call Prev with step 2' );
+    is( $d.Prev,   -1, 'call Prev with default' ) if  0 < $hunks;
+    is( $d.Next,    0, 'call Next with default' );
+    is( $d.Prev,   -1, 'call Prev with default' ) if  0 < $hunks;
+    is( $d.Next(5), 0, 'call Next with step 5');
+
+    is( $d.Next,    1, 'call Next with default' ) if  0 < $hunks;
+    is( $d.Reset,  $d, 'Reset default returns object' );
+    is( $d.Prev(0), 0, 'Prev on Reset object already at 0' );
+
+    is( $d.Reset(3).Next(0),  3, 'chained Reset->Next returns correct term' )
+        if  2 < $hunks;
+    is( $d.Reset(-2).Prev, -3, 'chained Reset->Prev returns correct term' )
+        if  2 < $hunks;
+
+    is( $d.Reset(0).Next(-1), $hunks,
+        'chained Reset(0)->Next(-1) returns number of hunks' );
+
+    my $c = $d.Copy;
+    is( $c.WHAT, 'Algorithm::Diff()',
+        'Copy makes a new object of the correct type.' );
+    is( $c.Base, $d.Base, 'with the correct Base' );
+    is( $c.Next(0), $d.Next(0), 'both iterate correctly' );
+    is( $d.Copy(-4).Next(0), $d.Copy().Reset(-4).Next(0),
+        'equivalent chained operations return equivalent results' );
+
+    $c = $d.Copy( $undef, 1 );
+    is( $c.Base(), 1, 'Copy with parameters yields expected result' );
+    is( $c.Next(0), $d.Next(0), 'Copy with parameters iterates correctly' );
+
+    $d.Reset();
+    my( @A, @B );
+
+# The two tests in the following group marked with the comments are different
+# from the perl5 tests. .Same and .Items return elements and .Range returns
+# indicies. The perl 5 tests were comparing array refs in scalar context so they
+# would pass as long as they both were the same size. Now they check to see if
+# they have the same contents.
+
+    while( $d.Next ) {
+        my $i = 1;
+        if( $d.Same ) {
+            is( $d.Diff,            0,               "if loop sequence #{$i++}" );
+            is( $d.Same,            @b[$d.Range(2)], "if loop sequence #{$i++}" ); # different from perl 5 !!
+            is( $d.Items(2),        @a[$d.Range(1)], "if loop sequence #{$i++}" ); # different from perl 5 !!
+            is( ~$d.Same,          ~$d.Items(1),     "if loop sequence #{$i++}" );
+            is( ~$d.Items(1),      ~$d.Items(2),     "if loop sequence #{$i++}" );
+            is( ~$d.Items(2),      ~@a[$d.Range(1)], "if loop sequence #{$i++}" );
+            is( ~@a[$d.Range(1,0)], @b[$d.Range(2)], "if loop sequence #{$i++}" );
+            push @A, $d.Same;
+            push @B, @b[$d.Range(2)];
+        } else {
+            is( $d.Same,      '',                   "else loop sequence #{$i++}" );
+            is( $d.Diff && 1, 1 * $d.Range(1).Bool, "else loop sequence #{$i++}" );
+            is( $d.Diff && 2, 2 * $d.Range(2).Bool, "else loop sequence #{$i++}" );
+            is( ~$d.Items(1), ~@a[$d.Range(1)],     "else loop sequence #{$i++}" );
+            is( ~$d.Items(2), ~@b[$d.Range(2,0)],   "else loop sequence #{$i++}" );
+
+            push @A, @a[$d.Range(1)];
+            push @B, $d.Items(2);
+        }
+    }
+    is( ~@A, ~@a, 'A & a arrays are equivalent' );
+    is( ~@B, ~@b, 'B & b arrays are equivalent' );
+
+    next unless $hunks;
+
+    is($d.Next, 1, 'next ok if hunks left' );
+    dies_ok( { $d.Items    }, 'need to call Items with a parameter' ); 
+    dies_ok( { $d.Items(0) }, 'need to call Items with a valid parameter' );
+    dies_ok( { $d.Range    }, 'need to call Range with a parameter' );
+    dies_ok( { $d.Range(3) }, 'need to call Range with a valid parameter' );
+    dies_ok( { $d.Min      }, 'need to call Min with a parameter' );
+    dies_ok( { $d.Min(-1)  }, 'need to call Min with a valid parameter' );
+    dies_ok( { $d.Max      }, 'need to call Max with a parameter' );
+    dies_ok( { $d.Max(9)   }, 'need to call Max with a valid parameter' );
+
+    $d.Reset(-1);
+    $c = $d.Copy( $undef, 1 );
+
+    is( ~@a[$d.Range(1)],   ~[(0,@a)[$c.Range(1)]],   'Range offsets are sane' );
+    is( ~@b[$c.Range(2,0)], ~[(0,@b)[$d.Range(2,1)]], 'Range offsets are sane' );
 }
-        
-# # Before `make install' is performed this script should be runnable with
-# # `make test'. After `make install' it should work as `perl oo.t'
-# use strict;
-# BEGIN { $^W++; }
-# use lib qw( blib lib );
-# use Algorithm::Diff qw( compact_diff );
-# use Data::Dumper;
-# use Test qw( plan ok $ntest );
 
-# BEGIN
-# {
-#     $|++;
-
-#     $SIG{__DIE__} = sub # breakpoint on die
-#     {
-#         $DB::single = 1
-#             if  ! $^S;
-#         die @_;
-#     };
-#     $SIG{__WARN__} = sub # breakpoint on warn
-#     {
-#         $DB::single = 1;
-#         warn @_;
-#     };
-# }
-
-# sub Ok($$) { @_= reverse @_; goto &ok }
-
-# my( $first, $a, $b, $hunks );
-# for my $pair (
-#     [ "a b c   e  h j   l m n p",
-#       "  b c d e f  j k l m    r s t", 9 ],
-#     [ "", "", 0 ],
-#     [ "a b c", "", 1 ],
-#     [ "", "a b c d", 1 ],
-#     [ "a b", "x y z", 1 ],
-#     [ "    c  e   h j   l m n p r",
-#       "a b c d f g  j k l m      s t", 7 ],
-#     [ "a b c d",
-#       "a b c d", 1 ],
-#     [ "a     d",
-#       "a b c d", 3 ],
-#     [ "a b c d",
-#       "a     d", 3 ],
-#     [ "a b c d",
-#       "  b c  ", 3 ],
-#     [ "  b c  ",
-#       "a b c d", 3 ],
-# ) {
-#     $first= $ntest;
-#     ( $a, $b, $hunks )= @$pair;
-#     my @a = split ' ', $a;
-#     my @b = split ' ', $b;
-
-#     my $d = Algorithm::Diff->new( \@a, \@b );
-
-#     if(  @ARGV  ) {
-#         print "1: $a$/2: $b$/";
-#         while( $d->Next() ) {
-#             printf "%10s %s %s$/",
-#                 join(' ',$d->Items(1)),
-#                 $d->Same() ? '=' : '|',
-#                 join(' ',$d->Items(2));
-#         }
-#     }
-
-#     Ok( 0, $d->Base() );
-#     Ok( 0, $d->Base(undef) );
-#     Ok( 0, $d->Base(1) );
-#     Ok( 1, $d->Base(undef) );
-#     Ok( 1, $d->Base(0) );
-
-#     ok( ! eval { $d->Diff(); 1 } );
-#     ok( $@, qr/\breset\b/i );
-#     ok( ! eval { $d->Same(); 1 } );
-#     ok( $@, qr/\breset\b/i );
-#     ok( ! eval { $d->Items(1); 1 } );
-#     ok( $@, qr/\breset\b/i );
-#     ok( ! eval { $d->Range(2); 1 } );
-#     ok( $@, qr/\breset\b/i );
-#     ok( ! eval { $d->Min(1); 1 } );
-#     ok( $@, qr/\breset\b/i );
-#     ok( ! eval { $d->Max(2); 1 } );
-#     ok( $@, qr/\breset\b/i );
-#     ok( ! eval { $d->Get('Min1'); 1 } );
-#     ok( $@, qr/\breset\b/i );
-
-#     ok( ! $d->Next(0) );
-#     ok( ! eval { $d->Same(); 1 } );
-#     ok( $@, qr/\breset\b/i );
-#     Ok( 1, $d->Next() )         if  0 < $hunks;
-#     Ok( 2, $d->Next(undef) )    if  1 < $hunks;
-#     Ok( 3, $d->Next(1) )        if  2 < $hunks;
-#     Ok( 2, $d->Next(-1) )       if  1 < $hunks;
-#     ok( ! $d->Next(-2) );
-#     ok( ! eval { $d->Same(); 1 } );
-#     ok( $@, qr/\breset\b/i );
-
-#     ok( ! $d->Prev(0) );
-#     ok( ! eval { $d->Same(); 1 } );
-#     ok( $@, qr/\breset\b/i );
-#     Ok( -1, $d->Prev() )        if  0 < $hunks;
-#     Ok( -2, $d->Prev(undef) )   if  1 < $hunks;
-#     Ok( -3, $d->Prev(1) )       if  2 < $hunks;
-#     Ok( -2, $d->Prev(-1) )      if  1 < $hunks;
-#     ok( ! $d->Prev(-2) );
-
-#     Ok( 1, $d->Next() )         if  0 < $hunks;
-#     ok( ! $d->Prev() );
-#     Ok( 1, $d->Next() )         if  0 < $hunks;
-#     ok( ! $d->Prev(2) );
-#     Ok( -1, $d->Prev() )        if  0 < $hunks;
-#     ok( ! $d->Next() );
-#     Ok( -1, $d->Prev() )        if  0 < $hunks;
-#     ok( ! $d->Next(5) );
-
-#     Ok( 1, $d->Next() )         if  0 < $hunks;
-#     Ok( $d, $d->Reset() );
-#     ok( ! $d->Prev(0) );
-#     Ok( 3, $d->Reset(3)->Next(0) )  if  2 < $hunks;
-#     Ok( -3, $d->Reset(-2)->Prev() ) if  2 < $hunks;
-#     Ok( $hunks || !1, $d->Reset(0)->Next(-1) );
-
-#     my $c = $d->Copy();
-#     ok( $c->Base(), $d->Base() );
-#     ok( $c->Next(0), $d->Next(0) );
-#     ok( $d->Copy(-4)->Next(0),
-#         $d->Copy()->Reset(-4)->Next(0) );
-
-#     $c = $d->Copy( undef, 1 );
-#     Ok( 1, $c->Base() );
-#     ok( $c->Next(0), $d->Next(0) );
-
-#     $d->Reset();
-#     my( @A, @B );
-#     while( $d->Next() ) {
-#         if( $d->Same() ) {
-#             Ok( 0, $d->Diff() );
-#             ok( $d->Same(), $d->Range(2) );
-#             ok( $d->Items(2), $d->Range(1) );
-#             ok( "@{[$d->Same()]}",
-#                 "@{[$d->Items(1)]}" );
-#             ok( "@{[$d->Items(1)]}",
-#                 "@{[$d->Items(2)]}" );
-#             ok( "@{[$d->Items(2)]}",
-#                 "@a[$d->Range(1)]" );
-#             ok( "@a[$d->Range(1,0)]",
-#                 "@b[$d->Range(2)]" );
-#             push @A, $d->Same();
-#             push @B, @b[$d->Range(2)];
-#         } else {
-#             Ok( 0, $d->Same() );
-#             ok( $d->Diff() & 1, 1*!!$d->Range(1) );
-#             ok( $d->Diff() & 2, 2*!!$d->Range(2) );
-#             ok( "@{[$d->Items(1)]}",
-#                 "@a[$d->Range(1)]" );
-#             ok( "@{[$d->Items(2)]}",
-#                 "@b[$d->Range(2,0)]" );
-#             push @A, @a[$d->Range(1)];
-#             push @B, $d->Items(2);
-#         }
-#     }
-#     ok( "@A", "@a" );
-#     ok( "@B", "@b" );
-
-#     next   if  ! $hunks;
-
-#     Ok( 1, $d->Next() );
-#     { local $^W= 0;
-#     ok( ! eval { $d->Items(); 1 } ); }
-#     ok( ! eval { $d->Items(0); 1 } );
-#     { local $^W= 0;
-#     ok( ! eval { $d->Range(); 1 } ); }
-#     ok( ! eval { $d->Range(3); 1 } );
-#     { local $^W= 0;
-#     ok( ! eval { $d->Min(); 1 } ); }
-#     ok( ! eval { $d->Min(-1); 1 } );
-#     { local $^W= 0;
-#     ok( ! eval { $d->Max(); 1 } ); }
-#     ok( ! eval { $d->Max(9); 1 } );
-
-#     $d->Reset(-1);
-#     $c= $d->Copy(undef,1);
-#     ok( "@a[$d->Range(1)]",
-#         "@{[(0,@a)[$c->Range(1)]]}" );
-#     ok( "@b[$c->Range(2,0)]",
-#         "@{[(0,@b)[$d->Range(2,1)]]}" );
+##############################################################################
+# .Get not implemented so can't test Get method
+#
 #     ok( "@a[$d->Get('min1')..$d->Get('0Max1')]",
 #         "@{[(0,@a)[$d->Get('1MIN1')..$c->Get('MAX1')]]}" );
-
 #     ok( "@{[$c->Min(1),$c->Max(2,0)]}",
 #         "@{[$c->Get('Min1','0Max2')]}" );
 #     ok( ! eval { scalar $c->Get('Min1','0Max2'); 1 } );
@@ -205,18 +167,9 @@ BEGIN
 #         "@{[$d->Get(qq<same Diff BASE>)]}" );
 #     ok( "@{[0+$d->Range(1),0+$d->Range(2)]}",
 #         "@{[$d->Get(qq<Range1 rAnGe2>)]}" );
-#     { local $^W= 0;
 #     ok( ! eval { $c->Get('range'); 1 } );
 #     ok( ! eval { $c->Get('min'); 1 } );
 #     ok( ! eval { $c->Get('max'); 1 } ); }
 
-# } continue {
-#     if(  @ARGV  ) {
-#         my $tests= $ntest - $first;
-#         print "$hunks hunks, $tests tests.$/";
-#     }
-# }
 
-# # $d = Algorithm::Diff->new( \@a, \@b, {KeyGen=>sub...} );
 
-# # @cdiffs = compact_diff( \@seq1, \@seq2 );
