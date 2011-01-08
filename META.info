@@ -1,7 +1,7 @@
 {
     "name" : "Algorithm::Diff",
     "version" : "*",
-    "description" : "Algorithm::Diff is the module that contains several interfaces for which computing the differences betwen two lists.",
+    "description" : "Contains several interfaces for which computing the differences betwen two lists.",
     "depends" : [],
     "repo-type" : "git",
     "repo-url" : "git://github.com/Takadonet/Algorithm--Diff.git"
