@@ -10,7 +10,7 @@ use Algorithm::Diff;
 
 my $undef;
 
-my( $a, $b, $hunks );
+my ( $a, $b, $hunks );
 for (
      [ "a b c   e  h j   l m n p", "  b c d e f  j k l m    r s t", 9 ],
      [ "", "", 0 ],
@@ -102,7 +102,7 @@ for (
     is( $c.Next(0), $d.Next(0), 'Copy with parameters iterates correctly' );
 
     $d.Reset();
-    my( @A, @B );
+    my ( @A, @B );
 
 # The two tests in the following group marked with the comments are different
 # from the perl5 tests. .Same and .Items return elements and .Range returns
@@ -110,9 +110,9 @@ for (
 # would pass as long as they both were the same size. Now they check to see if
 # they have the same contents.
 
-    while( $d.Next ) {
+    while ( $d.Next ) {
         my $i = 1;
-        if( $d.Same ) {
+        if ( $d.Same ) {
             is( $d.Diff,            0,               "if loop sequence #{$i++}" );
             is( $d.Same,            @b[$d.Range(2)], "if loop sequence #{$i++}" ); # different from perl 5 !!
             is( $d.Items(2),        @a[$d.Range(1)], "if loop sequence #{$i++}" ); # different from perl 5 !!

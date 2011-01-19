@@ -442,12 +442,12 @@ sub compact_diff( @a, @b, &keyGen = &default_keyGen ) is export
      push @cdiff, $ai, $bi;
      while ( 1 )
      {
-         while(  $am  &&  $ai == $am.[0]  &&  $bi == $bm.[0]  )
+         while (  $am  &&  $ai == $am.[0]  &&  $bi == $bm.[0]  )
          {
              shift $am;
              shift $bm;
              ++$ai, ++$bi;
-          }
+         }
          push @cdiff, $ai, $bi;
          last if !$am;
          $ai = $am.[0];
@@ -501,7 +501,7 @@ has $_Min = -2;   # Added to _Off to get min instead of max+1
 method new ( @seq1, @seq2, &keyGen = &default_keyGen ) {
     my @cdif = &compact_diff( @seq1, @seq2, &keyGen );
     my $same = 1;
-    if(  0 == @cdif[2]  &&  0 == @cdif[3] ) {
+    if (  0 == @cdif[2]  &&  0 == @cdif[3] ) {
         $same = 0;
         @cdif.splice( 0, 2 );
     }
