@@ -4,6 +4,6 @@
     "description" : "Contains several interfaces for which computing the differences between two lists.",
     "depends" : [],
     "repo-type" : "git",
-    "repo-url" : "git://github.com/Takadonet/Algorithm--Diff.git"
+    "source-url" : "git://github.com/Takadonet/Algorithm--Diff.git"
 }
 
