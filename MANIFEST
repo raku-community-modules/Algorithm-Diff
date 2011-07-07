@@ -1,5 +1,4 @@
 diff.pl
-cdiff.pl
 META.info
 lib/Algorithm/Diff.pm       Algorithm::Diff perl module
 MANIFEST
