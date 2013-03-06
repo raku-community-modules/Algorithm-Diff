@@ -6,7 +6,7 @@ class Algorithm::Diff {
 # # by Ned Konz, perl@bike-nomad.com
 # # Updates by Tye McQueen, http://perlmonks.org/?node=tye
 #
-# Perl 6 port by takadonet.
+# Perl 6 port by Philip Mabon aka: takadonet.
 # Additional porting by Stephen Schulze, aka: thundergnat.
 
 
@@ -1612,7 +1612,7 @@ Much work was done by Ned Konz (perl@bike-nomad.com).
 
 The OO interface and some other changes are by Tye McQueen.
 
-Perl 6 port by takadonet and Steve Schulze (thundergnat)
+Perl 6 port by Philip Mabon (takadonet) and Steve Schulze (thundergnat)
 
 =end pod
 
