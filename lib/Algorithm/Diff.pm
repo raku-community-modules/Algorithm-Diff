@@ -109,6 +109,7 @@ our sub _replaceNextLargerWith( @array is rw, $aValue, $high is copy )
 
 # If passed two arrays, trim any leading or trailing common elements, then
 # process (&prepare) the second array to a hash and redispatch
+our proto sub _longestCommonSubsequence(@a,@b?,%bMatches?,$counting?,&fcn?,%args?) {*}
 
 our multi sub _longestCommonSubsequence(
     @a,
@@ -274,7 +275,7 @@ sub traverse_sequences(
             if ( &finished_a.defined )
             {
                 &finished_a( $lastA );
-                &finished_a = {};
+                &finished_a = sub {};
             }
             else
             {
@@ -288,7 +289,7 @@ sub traverse_sequences(
             if ( &finished_b.defined )
             {
                 &finished_b( $lastB );
-                &finished_b = {};
+                &finished_b = sub {};
             }
             else
             {
