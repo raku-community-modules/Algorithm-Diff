@@ -421,7 +421,7 @@ sub LCSidx( @a, @b, &keyGen = &default_keyGen ) is export
 {
      my @match = _longestCommonSubsequence( @a, @b, 0, &keyGen );
      my $amatch_indices = (^@match).grep: { @match[$^a].defined };
-     my $bmatch_indices = @match[$amatch_indices];
+     my $bmatch_indices = @match[@$amatch_indices];
      # return list references, @arrays will flatten
      return ($amatch_indices, $bmatch_indices);
 }
@@ -429,21 +429,23 @@ sub LCSidx( @a, @b, &keyGen = &default_keyGen ) is export
 sub compact_diff( @a, @b, &keyGen = &default_keyGen ) is export
 {
      my ( $am, $bm ) = LCSidx( @a, @b, &keyGen );
+     my @am = $am.list;
+     my @bm = $bm.list;
      my @cdiff;
      my ( $ai, $bi ) = ( 0, 0 );
      push @cdiff, $ai, $bi;
      while ( 1 )
      {
-         while (  $am  &&  $ai == $am.[0]  &&  $bi == $bm.[0]  )
+         while (  @am  &&  $ai == @am.[0]  &&  $bi == @bm.[0]  )
          {
-             shift $am;
-             shift $bm;
+             shift @am;
+             shift @bm;
              ++$ai, ++$bi;
          }
          push @cdiff, $ai, $bi;
-         last if !$am;
-         $ai = $am.[0];
-         $bi = $bm.[0];
+         last if !@am;
+         $ai = @am.[0];
+         $bi = @bm.[0];
          push @cdiff, $ai, $bi;
      }
      push @cdiff, +@a, +@b
