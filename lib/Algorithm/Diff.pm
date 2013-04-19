@@ -109,7 +109,7 @@ our sub _replaceNextLargerWith( @array is rw, $aValue, $high is copy )
 
 # If passed two arrays, trim any leading or trailing common elements, then
 # process (&prepare) the second array to a hash and redispatch
-our proto sub _longestCommonSubsequence(@a,@b?,%bMatches?,$counting?,&fcn?,%args?) {*}
+our proto sub _longestCommonSubsequence(@a,$,$counting?,&fcn?,%args?,*%) {*}
 
 our multi sub _longestCommonSubsequence(
     @a,
@@ -118,16 +118,7 @@ our multi sub _longestCommonSubsequence(
     &keyGen = &default_keyGen
 )
 {
-    my &compare;
-    if (&keyGen eq &default_keyGen)
-    {
-        # most common case - string comparison
-        &compare = sub ( $a, $b ) { $a eq $b };
-    }
-    else
-    { 
-        &compare = sub ( $a, $b ) { &keyGen( $a ) eq &keyGen( $b ) };
-    }
+    my &compare = sub ( $a, $b ) { &keyGen( $a ) eq &keyGen( $b ) };
 
     my ( $aStart, $aFinish ) = ( 0, +@a-1 );
     my ( $bStart, $bFinish ) = ( 0, +@b-1 );
@@ -181,7 +172,7 @@ our multi sub _longestCommonSubsequence(
 )
 {
     my ( @thresh, @links, $ai );
-    for ( $aStart .. ^$aFinish ) -> $i
+    for ( $aStart ..^ $aFinish ) -> $i
     {
          $ai = &keyGen( @a[$i] );
 
