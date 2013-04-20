@@ -483,14 +483,14 @@ sub sdiff( @a, @b ) is export
 # Object Interface
 #
 
-has @_Idx  is rw; # Array of hunk indices
-has @_Seq  is rw; # First , Second sequence
-has $_End  is rw; # Diff between forward and reverse pos
-has $_Same is rw; # 1 if pos 1 contains unchanged items
-has $_Base is rw; # Added to range's min and max
-has $_Pos  is rw; # Which hunk is currently selected
-has $_Off  is rw; # Offset into _Idx for current position
-has $_Min = -2;   # Added to _Off to get min instead of max+1
+has @._Idx  is rw; # Array of hunk indices
+has @._Seq  is rw; # First , Second sequence
+has $._End  is rw; # Diff between forward and reverse pos
+has $._Same is rw; # 1 if pos 1 contains unchanged items
+has $._Base is rw; # Added to range's min and max
+has $._Pos  is rw; # Which hunk is currently selected
+has $._Off  is rw; # Offset into _Idx for current position
+has $._Min = -2;   # Added to _Off to get min instead of max+1
 
 method new ( @seq1, @seq2, &keyGen = &default_keyGen ) {
     my @cdif = &compact_diff( @seq1, @seq2, &keyGen );
@@ -513,7 +513,7 @@ method new ( @seq1, @seq2, &keyGen = &default_keyGen ) {
 
 # sanity check to make sure Pos index is a defined & non-zero.
 method _ChkPos {
-   return if $_Pos;
+   return if $._Pos;
    die( "Method illegal on a \"Reset\" Diff object" );
 }
 
@@ -521,42 +521,42 @@ method _ChkPos {
 method Next ($steps? is copy ) {
     $steps = 1 if !$steps.defined;
     if $steps {
-        my $pos = $_Pos;
+        my $pos = $._Pos;
         my $new = $pos + $steps;
         $new = 0 if ($pos and $new) < 0;
         self.Reset( $new );
     }
-    return $_Pos;
+    return $._Pos;
 }
 
 # inverse of Next.
 method Prev ( $steps? is copy ) {
     $steps  = 1 if !$steps.defined;
     my $pos = self.Next( -$steps );
-    $pos -= $_End if $pos;
+    $pos -= $._End if $pos;
     return $pos;
 }
 
 # set the Pos pointer to passed index or 0 if none passed.
 method Reset ( $pos? is copy ) {
     $pos = 0 if !$pos.defined;
-    $pos += $_End if $pos < 0;
-    $pos = 0 if $pos < 0 || $_End <= $pos;
-    $_Pos = $pos // 0;
-    $_Off = 2 * $pos - 1;
+    $pos += $._End if $pos < 0;
+    $pos = 0 if $pos < 0 || $._End <= $pos;
+    $._Pos = $pos // 0;
+    $._Off = 2 * $pos - 1;
     return self;
 }
 
 # make sure a valid hunk is at the sequence/offset.
 method _ChkSeq ( $seq ) {
-    return $seq + $_Off if  1 == $seq  ||  2 == $seq;
+    return $seq + $._Off if  1 == $seq  ||  2 == $seq;
     die( "Invalid sequence number ($seq); must be 1 or 2" );
 }
 
 # Change indexing base to the passed parameter (0 or 1 typically).
 method Base ( $base? ) {
-    my $oldBase = $_Base;
-    $_Base = 0 + $base if $base.defined ;
+    my $oldBase = $._Base;
+    $._Base = 0 + $base if $base.defined ;
     return $oldBase;
 }
 
@@ -572,32 +572,32 @@ method Copy ( $pos?, $base? ) {
 method Min ( $seq, $base? is copy ) {
     self._ChkPos;
     my $off = self._ChkSeq( $seq );
-    $base = $_Base if !$base.defined;
-    return $base + @_Idx[ $off + $_Min ];
+    $base = $._Base if !$base.defined;
+    return $base + @._Idx[ $off + $._Min ];
 }
 
 # returns the index of the last item in a given hunk.
 method Max ( $seq, $base? is copy ) {
     self._ChkPos;
     my $off = self._ChkSeq( $seq );
-    $base = $_Base if !$base.defined;
-    return $base + @_Idx[ $off ] - 1;
+    $base = $._Base if !$base.defined;
+    return $base + @._Idx[ $off ] - 1;
 }
 
 # returns the indicies of the items in a given hunk.
 method Range ( $seq, $base? is copy ) {
     self._ChkPos;
     my $off = self._ChkSeq( $seq );
-    $base = $_Base if !$base.defined;
-    return ( $base + @_Idx[ $off + $_Min ] )
-         ..  ( $base + @_Idx[ $off ] - 1 );
+    $base = $._Base if !$base.defined;
+    return ( $base + @._Idx[ $off + $._Min ] )
+         ..  ( $base + @._Idx[ $off ] - 1 );
 }
 
 # returns the items in a given hunk.
 method Items ( $seq ) {
     self._ChkPos;
     my $off = self._ChkSeq( $seq );
-    return @_Seq[$seq][@_Idx[ $off + $_Min ] ..  @_Idx[ $off ] - 1 ];
+    return @._Seq[$seq][@._Idx[ $off + $._Min ] ..  @._Idx[ $off ] - 1 ];
 }
 
 # returns a bit mask representing the operations to change the current
@@ -608,13 +608,13 @@ method Items ( $seq ) {
 # 3 - replace items from sequence 1 with those from sequence 2
 method Diff {
     self._ChkPos;
-    return 0 if $_Same == ( 1 +& $_Pos );
+    return 0 if $._Same == ( 1 +& $._Pos );
     my $ret = 0;
-    my $off = $_Off;
+    my $off = $._Off;
     for ( 1, 2 ) -> $seq {
         $ret +|= $seq
-            if  @_Idx[ $off + $seq + $_Min ]
-            <   @_Idx[ $off + $seq ];
+            if  @._Idx[ $off + $seq + $._Min ]
+            <   @._Idx[ $off + $seq ];
     }
     return $ret;
 }
@@ -623,7 +623,7 @@ method Diff {
 # or an empty list if not.
 method Same {
      self._ChkPos;
-     return () if  $_Same != ( 1 +& $_Pos );
+     return () if  $._Same != ( 1 +& $._Pos );
      return self.Items(1);
 }
 
