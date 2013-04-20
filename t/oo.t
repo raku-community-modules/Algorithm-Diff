@@ -1,7 +1,7 @@
 use v6;
 use Test;
 
-plan 779;
+plan 801;
    
 # Before 'make install' is performed this script should be runnable with
 # 'make test'. After 'make install' it should work as 'perl6 oo.t'
@@ -31,6 +31,8 @@ for (
     my @b = $b.comb(/ \S+ /);
 
     my $d = Algorithm::Diff.new( @a, @b );
+    ok $d.defined, "It's defined...";
+    isa_ok $d, Algorithm::Diff, "... and it's an Algorithm::Diff";
 
 #    ('-' x 79).say;
 #    say "Sequence A: ",$a;
@@ -90,8 +92,7 @@ for (
         'chained Reset(0)->Next(-1) returns number of hunks' );
 
     my $c = $d.Copy;
-    is( $c.WHAT, 'Algorithm::Diff()',
-        'Copy makes a new object of the correct type.' );
+    isa_ok $c, Algorithm::Diff, 'Copy makes a new object of the correct type.';
     is( $c.Base, $d.Base, 'with the correct Base' );
     is( $c.Next(0), $d.Next(0), 'both iterate correctly' );
     is( $d.Copy(-4).Next(0), $d.Copy().Reset(-4).Next(0),
