@@ -172,7 +172,7 @@ our multi sub _longestCommonSubsequence(
 )
 {
     my ( @thresh, @links, $ai );
-    for ( $aStart ..^ $aFinish ) -> $i
+    for ( $aStart .. $aFinish ) -> $i
     {
          $ai = &keyGen( @a[$i] );
 
