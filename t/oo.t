@@ -152,8 +152,8 @@ for (
     $d.Reset(-1);
     $c = $d.Copy( $undef, 1 );
 
-    is( ~@a[$d.Range(1)],   ~[(0,@a)[$c.Range(1)]],   'Range offsets are sane' );
-    is( ~@b[$c.Range(2,0)], ~[(0,@b)[$d.Range(2,1)]], 'Range offsets are sane' );
+    is( ~@a[$d.Range(1)],   ~[(0,@a).flat.[$c.Range(1)]],   'Range offsets are sane' );
+    is( ~@b[$c.Range(2,0)], ~[(0,@b).flat.[$d.Range(2,1)]], 'Range offsets are sane' );
 }
 
 ##############################################################################
