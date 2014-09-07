@@ -32,7 +32,7 @@ sub _withPositionsOfInInterval( @aCollection, $start, $end, &keyGen )
     {
         my $element = @aCollection[$index];
         my $key = &keyGen($element);
-        if ( %d.exists($key) )
+        if ( %d{$key}:exists )
         {
             %d{$key}.unshift( $index );
         }
@@ -123,7 +123,7 @@ our multi sub _longestCommonSubsequence(
     my ( $aStart, $aFinish ) = ( 0, +@a-1 );
     my ( $bStart, $bFinish ) = ( 0, +@b-1 );
     my @matchVector;
-    my ( $prunedCount, %bMatches ) = ( 0, {} );
+    my ( $prunedCount, %bMatches ) = ( 0, %({}) );
 
     # First we prune off any common elements at the beginning
     while  $aStart <= $aFinish
@@ -176,7 +176,7 @@ our multi sub _longestCommonSubsequence(
     {
          $ai = &keyGen( @a[$i] );
 
-         if ( %bMatches.exists($ai) )
+         if ( %bMatches{$ai}:exists )
          {
              my $k;
              for @( %bMatches{$ai} ) -> $j
@@ -499,7 +499,7 @@ method new ( @seq1, @seq2, &keyGen = &default_keyGen ) {
         $same = 0;
         @cdif.splice( 0, 2 );
     }
-    my $object = Algorithm::Diff.bless(*,
+    my $object = Algorithm::Diff.bless(
         :_Idx( @cdif ),
         :_Seq( '', [@seq1], [@seq2] ),
         :_End( ((1 + @cdif ) / 2).Int ),
