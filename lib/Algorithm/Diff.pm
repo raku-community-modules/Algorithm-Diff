@@ -420,7 +420,7 @@ sub LCS_length( @a, @b, &keyGen = &default_keyGen ) is export
 sub LCSidx( @a, @b, &keyGen = &default_keyGen ) is export
 {
      my @match = _longestCommonSubsequence( @a, @b, 0, &keyGen );
-     my $amatch_indices = (^@match).grep: { @match[$^a].defined };
+     my $amatch_indices = (^@match).grep({ @match[$^a].defined }).list;
      my $bmatch_indices = @match[@$amatch_indices];
      # return list references, @arrays will flatten
      return ($amatch_indices, $bmatch_indices);
