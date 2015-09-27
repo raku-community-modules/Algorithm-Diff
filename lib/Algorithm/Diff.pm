@@ -53,7 +53,7 @@ sub _withPositionsOfInInterval( @aCollection, $start, $end, &keyGen )
 # This is where the bulk (75%) of the time is spent in this module, so
 # try to make it fast!
 
-our sub _replaceNextLargerWith( @array is rw, $aValue, $high is copy )
+our sub _replaceNextLargerWith( @array, $aValue, $high is copy )
 {
     $high ||= +@array-1;
 
