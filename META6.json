@@ -12,6 +12,7 @@
         "Algorithm::Diff" : "lib/Algorithm/Diff.pm"
     },
     "source-type" : "git",
-    "source-url" : "git://github.com/Takadonet/Algorithm--Diff.git"
+    "source-url" : "git://github.com/Takadonet/Algorithm--Diff.git",
+    "tags" : ["CPAN5"]
 }
 
