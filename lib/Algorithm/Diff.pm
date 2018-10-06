@@ -75,7 +75,7 @@ our sub _replaceNextLargerWith( @array, $aValue, $high is copy )
 
         if ( $aValue == $found )
         {
-            return Mu;
+            return Int;
         }
         elsif ( $aValue > $found )
         {
