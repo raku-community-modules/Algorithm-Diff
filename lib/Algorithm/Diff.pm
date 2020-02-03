@@ -232,7 +232,7 @@ sub traverse_sequences(
     :DISCARD_B( &discard_b ),
     :A_FINISHED( &finished_a ) is copy,
     :B_FINISHED( &finished_b ) is copy
-) is export
+) is export(:traverse_sequences :DEFAULT)
 {
 
     my @matchVector = _longestCommonSubsequence( @a, @b, 0, &keyGen );
