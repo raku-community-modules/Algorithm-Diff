@@ -1,7 +1,7 @@
 {
     "perl" : "6.*",
     "name" : "Algorithm::Diff",
-    "version" : "*",
+    "version" : "0.0.1",
     "description" : "Contains several interfaces for which computing the differences between two lists.",
     "build-depends" : [ ],
     "test-depends" : [
