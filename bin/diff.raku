@@ -11,30 +11,24 @@ use v6;
 
 use Algorithm::Diff;
 
-sub MAIN (Str $file1,Str $file2) {
+sub MAIN (IO(Str) $file1, IO(Str) $file2) {
 
-# -f $file1 or bag("$file1: not a regular file");
-# -f $file2 or bag("$file2: not a regular file");
+    die "File does not exists: '$file1'" unless $file1.e;
+    die "File does not exists: '$file2'" unless $file2.e;
 
-# -T $file1 or bag("$file1: binary");
-# -T $file2 or bag("$file2: binary");
-    
-    $file1.IO ~~ :e || die "File does not exists: '$file1'";
-    $file2.IO ~~ :e || die "File does not exists: '$file2'";
-    
-    my @f1 = lines(open ($file1));
-    my @f2 = lines(open ($file2));
+    my @f1 = $file1.lines;
+    my @f2 = $file2.lines;
 
-    my @diffs = diff(@f1, @f2);
-    exit 0 unless @diffs;
-    
-    
-for (@diffs) -> @chunk {
-    my ($sign, $lineno, $text) = @chunk;
-    printf "%4d$sign %s\n", $lineno+1, $text;
-    say "--------";
-}
-    
-exit 1;
+    if diff(@f1, @f2) -> @diffs {
 
+        for @diffs -> @chunk {
+            my ($sign, $lineno, $text) = @chunk;
+            with $text {
+                printf "%4d$sign %s\n", $lineno+1, $_;
+                say "--------";
+            }
+        }
+
+        exit 1;
+    }
 }
