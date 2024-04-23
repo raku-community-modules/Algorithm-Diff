@@ -26,18 +26,10 @@ my &default_keyGen = { @_[0] }
 sub _withPositionsOfInInterval( @aCollection, $start, $end, &keyGen ) {
     my %d;
     for $start .. $end -> $index {
-        my $element = @aCollection[$index];
-        my $key = &keyGen($element);
-        if ( %d{$key}:exists ) {
-            %d{$key}.unshift( $index );
-        }
-        else {
-            %d{$key}[0]=$index;
-        }
+        %d{keyGen(@aCollection[$index])}.unshift($index);
     }
     %d
 }
-
 
 # Find the place at which aValue would normally be inserted into the
 # array. If that place is already occupied by aValue, do nothing, and
@@ -105,7 +97,7 @@ our multi sub _longestCommonSubsequence(
     $counting = 0,
     &keyGen = &default_keyGen
 ) {
-    my sub compare( $a, $b ) { &keyGen( $a ) eq &keyGen( $b ) }
+    my sub compare( $a, $b ) { keyGen( $a ) eq keyGen( $b ) }
 
     my ( $aStart, $aFinish ) = ( 0, +@a-1 );
     my ( $bStart, $bFinish ) = ( 0, +@b-1 );
@@ -115,7 +107,7 @@ our multi sub _longestCommonSubsequence(
     # First we prune off any common elements at the beginning
     while  $aStart <= $aFinish
         and $bStart <= $bFinish
-        and &compare( @a[$aStart], @b[$bStart]) {
+        and compare( @a[$aStart], @b[$bStart]) {
             @matchVector[ $aStart++ ] = $bStart++;
             $prunedCount++;
     }
@@ -123,7 +115,7 @@ our multi sub _longestCommonSubsequence(
     # now the end
     while  $aStart <= $aFinish
         and $bStart <= $bFinish
-        and &compare( @a[$aFinish], @b[$bFinish] ) {
+        and compare( @a[$aFinish], @b[$bFinish] ) {
             @matchVector[ $aFinish-- ] = $bFinish--;
             $prunedCount++;
     }
@@ -156,9 +148,9 @@ our multi sub _longestCommonSubsequence(
 ) {
     my ( @thresh, @links, $ai );
     for $aStart .. $aFinish -> $i {
-         $ai = &keyGen( @a[$i] );
+         $ai = keyGen( @a[$i] );
 
-         if ( %bMatches{$ai}:exists ) {
+         if %bMatches{$ai}:exists {
              my $k;
              for @(%bMatches{$ai}) -> $j {
                  # optimization: most of the time this will be true
@@ -172,12 +164,9 @@ our multi sub _longestCommonSubsequence(
                  # oddly, it's faster to always test this (CPU cache?).
                  # ( still true for Raku? need to test. )
                  if $k.defined {
-                      if $k {
-                           @links[$k] = [  @links[ $k - 1 ] , $i, $j ];
-                      }
-                      else {
-                           @links[$k] = [  Mu, $i, $j ];
-                      }
+                      @links[$k] = $k
+                        ?? [  @links[ $k - 1 ] , $i, $j ]
+                        !! [  Mu, $i, $j ];
                  }
             }
         }
@@ -214,11 +203,11 @@ sub traverse_sequences(
     loop ( $ai = 0 ; $ai < +@matchVector ; $ai++ ) {
         my $bLine = @matchVector[$ai];
         if $bLine.defined {    # matched
-             &discard_b( $ai, $bi++ ) while $bi < $bLine;
-             &match( $ai, $bi++ );
+             discard_b( $ai, $bi++ ) while $bi < $bLine;
+             match( $ai, $bi++ );
         }
         else {
-             &discard_a( $ai, $bi);
+             discard_a( $ai, $bi);
         }
     }
 
@@ -229,27 +218,27 @@ sub traverse_sequences(
         # last A?
         if  $ai == $lastA + 1 and $bi <= $lastB {
             if &finished_a.defined {
-                &finished_a( $lastA );
+                finished_a( $lastA );
                 &finished_a = sub {};
             }
             else {
-                &discard_b( $ai, $bi++ ) while $bi <= $lastB;
+                discard_b( $ai, $bi++ ) while $bi <= $lastB;
             }
         }
 
         # last B?
         if ( $bi == $lastB + 1 and $ai <= $lastA ) {
-            if ( &finished_b.defined ) {
-                &finished_b( $lastB );
+            if &finished_b.defined {
+                finished_b( $lastB );
                 &finished_b = sub {};
             }
             else {
-                &discard_a( $ai++, $bi ) while $ai <= $lastA;
+                discard_a( $ai++, $bi ) while $ai <= $lastA;
             }
         }
 
-        &discard_a( $ai++, $bi ) if $ai <= $lastA;
-        &discard_b( $ai, $bi++ ) if $bi <= $lastB;
+        discard_a( $ai++, $bi ) if $ai <= $lastA;
+        discard_b( $ai, $bi++ ) if $bi <= $lastB;
     }
 
     1
@@ -289,43 +278,43 @@ sub traverse_balanced(
 
                 # Change
                 if &change.defined {
-                    &change( $ai++, $bi++);
+                    change( $ai++, $bi++);
                 }
                 else {
-                    &discard_a( $ai++, $bi);
-                    &discard_b( $ai, $bi++);
+                    discard_a( $ai++, $bi);
+                    discard_b( $ai, $bi++);
                 }
             }
             elsif $ai < $ma {
-                &discard_a( $ai++, $bi);
+                discard_a( $ai++, $bi);
             }
             else {
                 # $bi < $mb
-                &discard_b( $ai, $bi++);
+                discard_b( $ai, $bi++);
             }
         }
 
         # Match
-        &match( $ai++, $bi++ );
+        match( $ai++, $bi++ );
     }
 
     while  $ai <= $lastA || $bi <= $lastB {
         if  $ai <= $lastA && $bi <= $lastB {
             # Change
             if &change.defined {
-                 &change( $ai++, $bi++);
+                 change( $ai++, $bi++);
             }
             else {
-                &discard_a( $ai++, $bi);
-                &discard_b( $ai, $bi++);
+                discard_a( $ai++, $bi);
+                discard_b( $ai, $bi++);
             }
         }
         elsif  $ai <= $lastA {
-            &discard_a( $ai++, $bi);
+            discard_a( $ai++, $bi);
         }
         else {
             # $bi <= $lastB
-            &discard_b( $ai, $bi++);
+            discard_b( $ai, $bi++);
         }
     }
 
@@ -371,20 +360,20 @@ sub compact_diff( @a, @b, &keyGen = &default_keyGen ) is export {
      my @bm = $bm.list;
      my @cdiff;
      my ( $ai, $bi ) = ( 0, 0 );
-     push @cdiff, $ai, $bi;
+     @cdiff.append: $ai, $bi;
      loop {
          while @am && $ai == @am.[0] && $bi == @bm.[0] {
-             shift @am;
-             shift @bm;
+             @am.shift;
+             @bm.shift;
              ++$ai, ++$bi;
          }
-         push @cdiff, $ai, $bi;
+         @cdiff.append: $ai, $bi;
          last if !@am;
          $ai = @am.[0];
          $bi = @bm.[0];
-         push @cdiff, $ai, $bi;
+         @cdiff.append: $ai, $bi;
      }
-     push @cdiff, +@a, +@b
+     @cdiff.append( +@a, +@b )
          if  $ai < @a || $bi < @b;
      @cdiff
 }
@@ -426,13 +415,14 @@ has $._Off  is rw; # Offset into _Idx for current position
 has $._Min = -2;   # Added to _Off to get min instead of max+1
 
 method new ( @seq1, @seq2, &keyGen = &default_keyGen ) {
-    my @cdif = &compact_diff( @seq1, @seq2, &keyGen );
+    my @cdif = compact_diff( @seq1, @seq2, &keyGen );
     my $same = 1;
-    if (  0 == @cdif[2]  &&  0 == @cdif[3] ) {
+    if 0 == @cdif[2]  &&  0 == @cdif[3] {
         $same = 0;
         @cdif.splice( 0, 2 );
     }
-    my $object = Algorithm::Diff.bless(
+
+    Algorithm::Diff.bless(
         :_Idx( @cdif ),
         :_Seq( '', [@seq1], [@seq2] ),
         :_End( ((1 + @cdif ) / 2).Int ),
@@ -440,14 +430,13 @@ method new ( @seq1, @seq2, &keyGen = &default_keyGen ) {
         :_Base( 0 ),
         :_Pos( 0 ),
         :_Off( 0 ),
-    );
-    return $object;
+    )
 }
 
 # sanity check to make sure Pos index is a defined & non-zero.
 method _ChkPos {
-   return if $._Pos;
-   die( "Method illegal on a \"Reset\" Diff object" );
+   die( "Method illegal on a \"Reset\" Diff object" )
+     unless $._Pos;
 }
 
 # increment Pos index pointer; default: +1, or passed parameter.
@@ -464,7 +453,7 @@ method Next ($steps? is copy ) {
 
 # inverse of Next.
 method Prev ( $steps? is copy ) {
-    $steps  = 1 if !$steps.defined;
+    $steps  = 1 unless $steps.defined;
     my $pos = self.Next( -$steps );
     $pos -= $._End if $pos;
     $pos
@@ -472,7 +461,7 @@ method Prev ( $steps? is copy ) {
 
 # set the Pos pointer to passed index or 0 if none passed.
 method Reset ( $pos? is copy ) {
-    $pos = 0 if !$pos.defined;
+    $pos = 0 unless $pos.defined;
     $pos += $._End if $pos < 0;
     $pos = 0 if $pos < 0 || $._End <= $pos;
     $._Pos = $pos // 0;
@@ -482,21 +471,22 @@ method Reset ( $pos? is copy ) {
 
 # make sure a valid hunk is at the sequence/offset.
 method _ChkSeq ( $seq ) {
-    return $seq + $._Off if  1 == $seq  ||  2 == $seq;
-    die( "Invalid sequence number ($seq); must be 1 or 2" );
+    1 == $seq  || 2 == $seq
+      ?? $seq + $._Off
+      !! die( "Invalid sequence number ($seq); must be 1 or 2" );
 }
 
 # Change indexing base to the passed parameter (0 or 1 typically).
 method Base ( $base? ) {
     my $oldBase = $._Base;
-    $._Base = 0 + $base if $base.defined ;
+    $._Base = 0 + $base if $base.defined;
     $oldBase
 }
 
 # Generate a new Diff object bassed on an existing one.
 method Copy ( $pos?, $base? ) {
     my $you = self.clone;
-    $you.Reset( $pos ) if $pos.defined ;
+    $you.Reset( $pos ) if $pos.defined;
     $you.Base( $base );
     $you
 }
@@ -556,8 +546,9 @@ method Diff {
 # or an empty list if not.
 method Same {
      self._ChkPos;
-     return () if  $._Same != ( 1 +& $._Pos );
-     self.Items(1)
+     $._Same != ( 1 +& $._Pos )
+       ?? ()
+       !! self.Items(1)
 }
 
 } # end Algorithm::Diff
@@ -1118,37 +1109,6 @@ list.
 =item Max
 
 C<Max> returns the last value that C<Range> would return or C<Nil>.
-
-#########################################################################
-#
-# Get is unimplemented under Raku. It is largely unnecessary, mostly
-# syntactic sugar to lump individual method calls together.
-#
-# #######################################################################
-# =item C<Get>
-
-#     ( $n, $x, $r ) = $diff->Get(qw( min1 max1 range1 ));
-#     @values = $diff->Get(qw( 0min2 1max2 range2 same base ));
-
-# C<Get> returns one or more scalar values.  You pass in a list of the
-# names of the values you want returned.  Each name must match one of the
-# following regexes:
-
-#     /^(-?\d+)?(min|max)[12]$/i
-#     /^(range[12]|same|diff|base)$/i
-
-# The 1 or 2 after a name says which sequence you want the information
-# for (and where allowed, it is required).  The optional number before
-# "min" or "max" is the base to use.  So the following equalities hold:
-
-#     $diff->Get('min1') == $diff->Min(1)
-#     $diff->Get('0min2') == $diff->Min(2,0)
-
-# Using C<Get> in a scalar context when you've passed in more than one
-# name is a fatal error (C<die> is called).
-
-# =back
-########################################################################
 
 =head2 prepare
 
