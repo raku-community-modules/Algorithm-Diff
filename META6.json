@@ -1,18 +1,23 @@
 {
-    "perl" : "6.*",
-    "name" : "Algorithm::Diff",
-    "version" : "0.0.1",
-    "description" : "Contains several interfaces for which computing the differences between two lists.",
-    "build-depends" : [ ],
-    "test-depends" : [
-        "Test"
-    ],
-    "depends" : [ ],
-    "provides" : {
-        "Algorithm::Diff" : "lib/Algorithm/Diff.pm"
-    },
-    "source-type" : "git",
-    "source-url" : "git://github.com/Takadonet/Algorithm--Diff.git",
-    "tags" : ["CPAN5"]
+  "auth": "zef:raku-community-modules",
+  "build-depends": [
+  ],
+  "depends": [
+  ],
+  "description": "Compute `intelligent' differences between two files / lists",
+  "license": "NOASSERTION",
+  "name": "Algorithm::Diff",
+  "perl": "6.*",
+  "provides": {
+    "Algorithm::Diff": "lib/Algorithm/Diff.rakumod"
+  },
+  "resources": [
+  ],
+  "source-url": "https://github.com/raku-community-modules/Algorithm-Diff.git",
+  "tags": [
+    "CPAN5"
+  ],
+  "test-depends": [
+  ],
+  "version": "0.0.2"
 }
-

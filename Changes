@@ -1,0 +1,5 @@
+Revision history for Algorithm-Diff
+
+{{$NEXT}}
+    - First version in the zef ecosystem
+    - Renamed diff.pl to bin/diff.raku so that it will be installed
