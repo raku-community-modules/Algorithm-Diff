@@ -1,5 +1,7 @@
 Revision history for Algorithm-Diff
 
 {{$NEXT}}
+
+0.0.2  2024-04-23T12:48:37+02:00
     - First version in the zef ecosystem
     - Renamed diff.pl to bin/diff.raku so that it will be installed
