@@ -1,5 +1,5 @@
-The module is a direct port from the Perl 5 version and should be close to 100% similair
-other then some Perl 6 idioms.
+The module is a direct port from the Perl 5 version and should be close to 100% similar
+other then some Raku idioms.
 
 Listed below is the original README:
 
