@@ -364,22 +364,6 @@ $min = $diff.Min( $seqNum, $base );
 
 `Max` returns the last value that `Range` would return or `Nil`.
 
-######################################################################### # # Get is unimplemented under Raku. It is largely unnecessary, mostly # syntactic sugar to lump individual method calls together. # # ####################################################################### # =item `Get`
-
-# ( $n, $x, $r ) = $diff->Get(qw( min1 max1 range1 )); # @values = $diff->Get(qw( 0min2 1max2 range2 same base ));
-
-# `Get` returns one or more scalar values. You pass in a list of the # names of the values you want returned. Each name must match one of the # following regexes:
-
-# /^(-?\d+)?(min|max)[12]$/i # /^(range[12]|same|diff|base)$/i
-
-# The 1 or 2 after a name says which sequence you want the information # for (and where allowed, it is required). The optional number before # "min" or "max" is the base to use. So the following equalities hold:
-
-# $diff->Get('min1') == $diff->Min(1) # $diff->Get('0min2') == $diff->Min(2,0)
-
-# Using `Get` in a scalar context when you've passed in more than one # name is a fatal error (`die` is called).
-
-# =back ########################################################################
-
 prepare
 -------
 
