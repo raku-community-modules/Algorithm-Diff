@@ -1,23 +1,19 @@
 {
-  "auth": "zef:raku-community-modules",
-  "build-depends": [
-  ],
-  "depends": [
-  ],
-  "description": "Compute `intelligent' differences between two files / lists",
-  "license": "NOASSERTION",
   "name": "Algorithm::Diff",
+  "description": "Compute `intelligent' differences between two files / lists",
+  "version": "0.0.3",
   "perl": "6.*",
+  "auth": "zef:raku-community-modules",
+  "depends": [],
+  "build-depends": [],
+  "test-depends": [],
   "provides": {
     "Algorithm::Diff": "lib/Algorithm/Diff.rakumod"
   },
-  "resources": [
-  ],
-  "source-url": "https://github.com/raku-community-modules/Algorithm-Diff.git",
+  "resources": [],
+  "license": "NOASSERTION",
   "tags": [
     "CPAN5"
   ],
-  "test-depends": [
-  ],
-  "version": "0.0.2"
+  "source-url": "https://github.com/raku-community-modules/Algorithm-Diff.git"
 }
