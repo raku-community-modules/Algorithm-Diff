@@ -2,6 +2,9 @@ Revision history for Algorithm-Diff
 
 {{$NEXT}}
 
+0.0.3  2024-05-02T20:16:22+02:00
+    - Correct results of diff and sdiff, antononcube++
+
 0.0.2  2024-04-23T12:48:37+02:00
     - First version in the zef ecosystem
     - Renamed diff.pl to bin/diff.raku so that it will be installed
