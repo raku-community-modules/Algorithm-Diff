@@ -11,7 +11,7 @@
     "Algorithm::Diff": "lib/Algorithm/Diff.rakumod"
   },
   "resources": [],
-  "license": "NOASSERTION",
+  "license": "Artistic-2.0",
   "tags": [
     "CPAN5"
   ],
