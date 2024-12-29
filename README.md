@@ -121,7 +121,7 @@ or
 USAGE
 =====
 
-(See also the README file and several example scripts include with this module.)
+(See several example scripts include with this module.)
 
 This module now provides an object-oriented interface that uses less memory and is easier to use than most of the previous procedural interfaces. It also still provides several exportable functions. We'll deal with these in ascending order of difficulty: `LCS`, `LCS_length`, `LCSidx`, OO interface, `prepare`, `diff`, `sdiff`, `traverse_sequences`, and `traverse_balanced`.
 
@@ -204,7 +204,8 @@ $maxIdx  = $obj.Max(   $seqNum, [ $base ] );
 
 Passing in an undefined value for an optional argument is always treated the same as if no argument were passed in.
 
-  * Next
+Next
+----
 
 ```raku
 $pos = $diff.Next;      # Move forward 1 hunk
@@ -218,13 +219,15 @@ $pos = $diff.Next(-5);  # Move backward 5 hunks
 
 Actually, `Next` returns the object's new position, which is a number between 1 and the number of hunks (inclusive), or returns a false value.
 
-  * Prev
+Prev
+----
 
 `Prev($N)` is almost identical to `Next(-$N)`; it moves to the $Nth previous hunk. On a 'reset' object, `Prev()` [and `Next(-1)`] move to the last hunk.
 
 The position returned by `Prev` is relative to the *end* of the hunks; -1 for the last hunk, -2 for the second-to-last, etc.
 
-  * `Reset`
+`Reset`
+-------
 
 ```raku
 $diff.Reset;       # Reset the object's position
@@ -235,7 +238,8 @@ $diff.Reset(-1);   # Move to the last hunk
 
 `Reset` returns the object, so, for example, you could use `$diff.Reset().Next(-1) ` to get the number of hunks.
 
-  * Copy
+Copy
+----
 
 ```raku
 $copy = $diff.Copy( $newPos, $newBase );
@@ -271,7 +275,8 @@ $copy = $diff.Copy(0);
 $copy = $diff.Copy.Reset;
 ```
 
-  * Diff
+Diff
+----
 
 ```raku
 $bits = $obj.Diff;
@@ -279,27 +284,29 @@ $bits = $obj.Diff;
 
 `Diff` returns a true value iff the current hunk contains items that are different between the two sequences. It actually returns one of the follow 4 values:
 
-  * 3
+### 3
 
 `3==(1|2)`. This hunk contains items from @seq1 and the items from @seq2 that should replace them. Both sequence 1 and 2 contain changed items so both the 1 and 2 bits are set.
 
-  * 2
+### 2
 
 This hunk only contains items from @seq2 that should be inserted (not items from @seq1). Only sequence 2 contains changed items so only the 2 bit is set.
 
-  * 1
+### 1
 
 This hunk only contains items from @seq1 that should be deleted (not items from @seq2). Only sequence 1 contains changed items so only the 1 bit is set.
 
-  * 0
+### 0
 
 This means that the items in this hunk are the same in both sequences. Neither sequence 1 nor 2 contain changed items so neither the 1 nor the 2 bits are set.
 
-  * Same
+Same
+----
 
 `Same` returns a true value iff the current hunk contains items that are the same in both sequences. It actually returns the list of items if they are the same or an emty list if they aren't. In a scalar context, it returns the size of the list.
 
-  * Items
+Items
+-----
 
 ```raku
 $count = $diff.Items(2);
@@ -320,7 +327,8 @@ Otherwise, the hunk contains identical items and all of the following will retur
 @items = $diff.Same;
 ```
 
-  * Range
+Range
+-----
 
 ```raku
 $count = $diff.Range( $seqNum );
@@ -342,7 +350,8 @@ You can also specify the base to use as the second argument. So the following tw
 @list = @seq1[ $diff.Range(1,0) ];
 ```
 
-  * Base
+Base
+----
 
 ```raku
 $curBase = $diff.Base();
@@ -351,7 +360,8 @@ $oldBase = $diff.Base($newBase);
 
 `Base` sets and/or returns the current base (usually 0 or 1) that is used when you request range information. The base defaults to 0 so that range information is returned as array indices. You can set the base to 1 if you want to report traditional line numbers instead.
 
-  * Min
+Min
+---
 
 ```raku
 $min1 = $diff.Min(1);
@@ -360,7 +370,8 @@ $min = $diff.Min( $seqNum, $base );
 
 `Min` returns the first value that `Range` would return (given the same arguments) or returns `undef` if `Range` would return an empty list.
 
-  * Max
+Max
+---
 
 `Max` returns the last value that `Range` would return or `Nil`.
 
@@ -693,6 +704,8 @@ LICENSE
 =======
 
 Parts Copyright (c) 2000-2004 Ned Konz. All rights reserved. Parts by Tye McQueen.
+
+Copyright 2024 Raku Community
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl.
 
