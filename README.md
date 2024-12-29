@@ -1,4 +1,4 @@
-[![Actions Status](https://github.com/raku-community-modules/Algorithm-Diff/actions/workflows/test.yml/badge.svg)](https://github.com/raku-community-modules/Algorithm-Diff/actions)
+[![Actions Status](https://github.com/raku-community-modules/Algorithm-Diff/actions/workflows/linux.yml/badge.svg)](https://github.com/raku-community-modules/Algorithm-Diff/actions) [![Actions Status](https://github.com/raku-community-modules/Algorithm-Diff/actions/workflows/macos.yml/badge.svg)](https://github.com/raku-community-modules/Algorithm-Diff/actions) [![Actions Status](https://github.com/raku-community-modules/Algorithm-Diff/actions/workflows/windows.yml/badge.svg)](https://github.com/raku-community-modules/Algorithm-Diff/actions)
 
 NAME
 ====
@@ -45,7 +45,6 @@ use Algorithm::Diff;
 $count = LCS_length( @seq1, @seq2 );
 
 ( $seq1idxlist, $seq2idxlist ) = LCSidx( @seq1, @seq2 );
-
 
 # Complicated interfaces:
 
@@ -111,8 +110,7 @@ A naive approach might start by matching up the `a` and `b` that appear at the b
 
 This finds the common subsequence `a b c z`. But actually, the LCS is `a x b y c z`:
 
-    a x b y c z p d q
-
+          a x b y c z p d q
     a b c a x b y c z
 
 or
@@ -175,9 +173,11 @@ You use the object to iterate over *hunks*, where each hunk represents a contigu
 
 The following summary of all of the methods looks a lot like Perl code but some of the symbols have different meanings:
 
-    [ ]     Encloses optional arguments
-    :       Is followed by the default value for an optional argument
-    |       Separates alternate return results
+<table class="pod-table">
+<tbody>
+<tr> <td>[ ]</td> <td>Encloses optional arguments</td> </tr> <tr> <td>:</td> <td>Is followed by the default value for an optional argument</td> </tr> <tr> <td>|</td> <td>Separates alternate return results</td> </tr>
+</tbody>
+</table>
 
 Method summary:
 

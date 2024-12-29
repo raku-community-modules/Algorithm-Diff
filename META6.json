@@ -15,7 +15,9 @@
   ],
   "source-url": "https://github.com/raku-community-modules/Algorithm-Diff.git",
   "tags": [
-    "CPAN5"
+    "CPAN5",
+    "DIFF",
+    "ALGORITHM"
   ],
   "test-depends": [
   ],

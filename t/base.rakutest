@@ -1,8 +1,8 @@
-use v6;
 use Test;
-plan 61;
 
 use Algorithm::Diff;
+
+plan 61;
 
 my @d = (2,4,6,8,10);
 my ($h, $i);
@@ -528,3 +528,5 @@ traverse_balanced( @a, @b,
                    );
 is($r, "C 0 0C 1 1C 2 2",
   "traverse_balanced() output ok, various corner cases");
+
+# vim: expandtab shiftwidth=4

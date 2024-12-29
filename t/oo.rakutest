@@ -1,12 +1,11 @@
-use v6;
 use Test;
+
+use Algorithm::Diff;
 
 plan 801;
 
 # Before 'make install' is performed this script should be runnable with
-# 'make test'. After 'make install' it should work as 'perl6 oo.t'
-
-use Algorithm::Diff;
+# 'make test'. After 'make install' it should work as 'raku oo.t'
 
 my $undef;
 
@@ -37,7 +36,7 @@ for (
 #    ('-' x 79).say;
 #    say "Sequence A: ",$a;
 #    say "Sequence B: ",$b;
-#    $d.perl.say;
+#    $d.raku.say;
 #    ('-' x 79).say;
 
     is( $d.Base,         0, 'call Base with nothing' );
@@ -106,8 +105,8 @@ for (
     my ( @A, @B );
 
 # The two tests in the following group marked with the comments are different
-# from the perl5 tests. .Same and .Items return elements and .Range returns
-# indicies. The perl 5 tests were comparing array refs in scalar context so they
+# from the Perl tests. .Same and .Items return elements and .Range returns
+# indicies. The Perlests were comparing array refs in scalar context so they
 # would pass as long as they both were the same size. Now they check to see if
 # they have the same contents.
 
@@ -115,8 +114,8 @@ for (
         my $i = 1;
         if ( $d.Same ) {
             is( $d.Diff,            0,               "if loop sequence #{$i++}" );
-            is( $d.Same,            @b[$d.Range(2)], "if loop sequence #{$i++}" ); # different from perl 5 !!
-            is( $d.Items(2),        @a[$d.Range(1)], "if loop sequence #{$i++}" ); # different from perl 5 !!
+            is( $d.Same,            @b[$d.Range(2)], "if loop sequence #{$i++}" ); # different from Perl !!
+            is( $d.Items(2),        @a[$d.Range(1)], "if loop sequence #{$i++}" ); # different from Perl!!
             is( ~$d.Same,          ~$d.Items(1),     "if loop sequence #{$i++}" );
             is( ~$d.Items(1),      ~$d.Items(2),     "if loop sequence #{$i++}" );
             is( ~$d.Items(2),      ~@a[$d.Range(1)], "if loop sequence #{$i++}" );
@@ -171,3 +170,5 @@ for (
 #     ok( ! eval { $c->Get('range'); 1 } );
 #     ok( ! eval { $c->Get('min'); 1 } );
 #     ok( ! eval { $c->Get('max'); 1 } ); }
+
+# vim: expandtab shiftwidth=4

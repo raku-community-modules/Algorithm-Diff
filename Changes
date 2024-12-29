@@ -1,6 +1,8 @@
 Revision history for Algorithm-Diff
 
 {{$NEXT}}
+    - Add CI badge for each OS
+    - Modernize pod a bit
 
 0.0.3  2024-05-02T20:16:22+02:00
     - Correct results of diff and sdiff, antononcube++
