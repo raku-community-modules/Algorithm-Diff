@@ -600,8 +600,8 @@ C<diff> may be passed an optional third parameter; this is a CODE
 reference to a key generation function.  See L</KEY GENERATION
 FUNCTIONS>.
 
-# Additional parameters, if any, will be passed to the key generation
-# routine.
+Additional parameters, if any, will be passed to the key generation
+routine.
 
 =head2 sdiff
 
@@ -663,8 +663,8 @@ C<sdiff> may be passed an optional third parameter; this is a CODE
 reference to a key generation function.  See L</KEY GENERATION
 FUNCTIONS>.
 
-# Additional parameters, if any, will be passed to the key generation
-# routine.
+Additional parameters, if any, will be passed to the key generation
+routine.
 
 =head2 compact_diff
 

@@ -441,7 +441,7 @@ There are five hunks here. The first hunk says that the `a` at position 0 of the
 
 `diff` may be passed an optional third parameter; this is a CODE reference to a key generation function. See [/KEY GENERATION FUNCTIONS](/KEY GENERATION FUNCTIONS).
 
-# Additional parameters, if any, will be passed to the key generation # routine.
+Additional parameters, if any, will be passed to the key generation routine.
 
 sdiff
 -----
@@ -487,7 +487,7 @@ results in
 
 `sdiff` may be passed an optional third parameter; this is a CODE reference to a key generation function. See [/KEY GENERATION FUNCTIONS](/KEY GENERATION FUNCTIONS).
 
-# Additional parameters, if any, will be passed to the key generation # routine.
+Additional parameters, if any, will be passed to the key generation routine.
 
 compact_diff
 ------------
