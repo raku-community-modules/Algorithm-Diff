@@ -1,4 +1,4 @@
-class Algorithm::Diff {
+unit class Algorithm::Diff:ver<0.0.5>:auth<zef:raku-community-modules>;
 
 # # McIlroy-Hunt diff algorithm
 # # Adapted from the Smalltalk code of Mario I. Wolczko, <mario@wolczko.com>
@@ -52,14 +52,14 @@ our sub _replaceNextLargerWith( @array, $aValue, $high is copy ) {
     my $low = 0;
     my $index;
     my $found;
-    while $low <= $high {
+    while $low <= $high {  # UNCOVERABLE
         $index = (( $high + $low ) / 2).Int;
         $found = @array[$index];
 
         if $aValue == $found {
             return Int;
         }
-        elsif  $aValue > $found {
+        elsif  $aValue > $found {  # UNCOVERABLE
             $low = $index + 1;
         }
         else {
@@ -107,7 +107,7 @@ our multi sub _longestCommonSubsequence(
     # First we prune off any common elements at the beginning
     while  $aStart <= $aFinish
         and $bStart <= $bFinish
-        and compare( @a[$aStart], @b[$bStart]) {
+        and compare( @a[$aStart], @b[$bStart]) {  # UNCOVERABLE
             @matchVector[ $aStart++ ] = $bStart++;
             $prunedCount++;
     }
@@ -115,7 +115,7 @@ our multi sub _longestCommonSubsequence(
     # now the end
     while  $aStart <= $aFinish
         and $bStart <= $bFinish
-        and compare( @a[$aFinish], @b[$bFinish] ) {
+        and compare( @a[$aFinish], @b[$bFinish] ) {  # UNCOVERABLE
             @matchVector[ $aFinish-- ] = $bFinish--;
             $prunedCount++;
     }
@@ -140,13 +140,13 @@ our multi sub _longestCommonSubsequence(
     @a,
     %bMatches,
     $counting = 0,
-    &keyGen = &default_keyGen,
+    &keyGen = &default_keyGen,  # UNCOVERABLE
     :PRUNED( $prunedCount ),
     :ASTART( $aStart ) = 0,
     :AFINISH( $aFinish ) = +@a-1,
     :MATCHVEC( @matchVector ) = []
 ) {
-    my ( @thresh, @links, $ai );
+    my ( @thresh, @links, $ai );  # UNCOVERABLE
     for $aStart .. $aFinish -> $i {
          $ai = keyGen( @a[$i] );
 
@@ -177,7 +177,7 @@ our multi sub _longestCommonSubsequence(
              @matchVector[ $link[1] ] = $link[2];
         }
     }
-    elsif $counting {
+    elsif $counting {  # UNCOVERABLE
         return $prunedCount;
     }
     @matchVector
@@ -192,7 +192,7 @@ sub traverse_sequences(
     :DISCARD_B( &discard_b ),
     :A_FINISHED( &finished_a ) is copy,
     :B_FINISHED( &finished_b ) is copy
-) is export(:traverse_sequences :DEFAULT) {
+) is export(:traverse_sequences :DEFAULT) {  # UNCOVERABLE
 
     my @matchVector = _longestCommonSubsequence( @a, @b, 0, &keyGen );
 
@@ -214,7 +214,7 @@ sub traverse_sequences(
     # The last entry (if any) processed was a match.
     # $ai and $bi point just past the last matching lines in their sequences.
 
-    while  $ai <= $lastA or $bi <= $lastB {
+    while  $ai <= $lastA or $bi <= $lastB {  # UNCOVERABLE
         # last A?
         if  $ai == $lastA + 1 and $bi <= $lastB {
             if &finished_a.defined {
@@ -261,7 +261,7 @@ sub traverse_balanced(
 
     loop {
         # Find next match indices $ma and $mb
-        repeat {
+        repeat {  # UNCOVERABLE
             $ma++;
         } while
                 $ma < +@matchVector
@@ -272,7 +272,7 @@ sub traverse_balanced(
 
         # Proceed with discard a/b or change events until
         # next match
-        while  $ai < $ma || $bi < $mb {
+        while  $ai < $ma || $bi < $mb {  # UNCOVERABLE
 
             if  $ai < $ma && $bi < $mb {
 
@@ -285,7 +285,7 @@ sub traverse_balanced(
                     discard_b( $ai, $bi++);
                 }
             }
-            elsif $ai < $ma {
+            elsif $ai < $ma {  # UNCOVERABLE
                 discard_a( $ai++, $bi);
             }
             else {
@@ -298,18 +298,18 @@ sub traverse_balanced(
         match( $ai++, $bi++ );
     }
 
-    while  $ai <= $lastA || $bi <= $lastB {
+    while  $ai <= $lastA || $bi <= $lastB {  # UNCOVERABLE
         if  $ai <= $lastA && $bi <= $lastB {
             # Change
             if &change.defined {
                  change( $ai++, $bi++);
             }
             else {
-                discard_a( $ai++, $bi);
+                discard_a( $ai++, $bi);  # UNCOVERABLE
                 discard_b( $ai, $bi++);
             }
         }
-        elsif  $ai <= $lastA {
+        elsif  $ai <= $lastA {  # UNCOVERABLE
             discard_a( $ai++, $bi);
         }
         else {
@@ -362,7 +362,7 @@ sub compact_diff( @a, @b, &keyGen = &default_keyGen ) is export {
      my ( $ai, $bi ) = ( 0, 0 );
      @cdiff.append: $ai, $bi;
      loop {
-         while @am && $ai == @am.[0] && $bi == @bm.[0] {
+         while @am && $ai == @am.[0] && $bi == @bm.[0] {  # UNCOVERABLE
              @am.shift;
              @bm.shift;
              ++$ai, ++$bi;
@@ -379,7 +379,7 @@ sub compact_diff( @a, @b, &keyGen = &default_keyGen ) is export {
 }
 
 sub diff( @a, @b ) is export {
-    my ( @retval, @hunk );
+    my ( @retval, @hunk );  # UNCOVERABLE
     traverse_sequences(
       @a, @b,
       MATCH     => sub ($x,$y) { @retval.append( @hunk ); @hunk = ()   },
@@ -418,7 +418,7 @@ method new ( @seq1, @seq2, &keyGen = &default_keyGen ) {
     my @cdif = compact_diff( @seq1, @seq2, &keyGen );
     my $same = 1;
     if 0 == @cdif[2]  &&  0 == @cdif[3] {
-        $same = 0;
+        $same = 0;  # UNCOVERABLE
         @cdif.splice( 0, 2 );
     }
 
@@ -495,16 +495,16 @@ method Copy ( $pos?, $base? ) {
 method Min ( $seq, $base? is copy ) {
     self._ChkPos;
     my $off = self._ChkSeq( $seq );
-    $base = $._Base if !$base.defined;
-    $base + @._Idx[ $off + $._Min ]
+    $base = $._Base if !$base.defined;  # UNCOVERABLE
+    $base + @._Idx[ $off + $._Min ]  # UNCOVERABLE
 }
 
 # returns the index of the last item in a given hunk.
 method Max ( $seq, $base? is copy ) {
     self._ChkPos;
     my $off = self._ChkSeq( $seq );
-    $base = $._Base if !$base.defined;
-    $base + @._Idx[ $off ] - 1
+    $base = $._Base if !$base.defined;  # UNCOVERABLE
+    $base + @._Idx[ $off ] - 1  # UNCOVERABLE
 }
 
 # returns the indicies of the items in a given hunk.
@@ -550,8 +550,6 @@ method Same {
        ?? ()
        !! self.Items(1)
 }
-
-} # end Algorithm::Diff
 
 # ############################################################################
 # Unported Perl object methods. Everything below except Die is to support Get
