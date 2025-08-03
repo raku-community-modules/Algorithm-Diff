@@ -4,7 +4,7 @@
   "specVersion": "1.6",
   "version": 1,
   "metadata": {
-    "timestamp": "2025-08-03T13:03:47+00:00",
+    "timestamp": "2025-08-03T13:17:26+00:00",
     "lifecycles": [
       {
         "phase": "pre-build"
@@ -23,7 +23,7 @@
     "component": {
       "type": "library",
       "mime-type": "text/plain",
-      "bom-ref": "pkg:raku/zef:raku-community-modules/Algorithm::Diff@0.0.4",
+      "bom-ref": "pkg:raku/zef:raku-community-modules/Algorithm::Diff@0.0.5",
       "authors": [
         {
           "bom-ref": "PhilipMabon",
@@ -37,7 +37,7 @@
       "publisher": "zef",
       "group": "zef:raku-community-modules",
       "name": "Algorithm::Diff",
-      "version": "0.0.4",
+      "version": "0.0.5",
       "description": "Compute `intelligent' differences between two files / lists",
       "scope": "required",
       "licenses": [
@@ -49,10 +49,10 @@
           }
         }
       ],
-      "purl": "pkg:raku/zef:raku-community-modules/Algorithm::Diff@0.0.4",
+      "purl": "pkg:raku/zef:raku-community-modules/Algorithm::Diff@0.0.5",
       "externalReferences": [
         {
-          "url": "https://raku.land/zef:raku-community-modules/Algorithm::Diff?v=0.0.4",
+          "url": "https://raku.land/zef:raku-community-modules/Algorithm::Diff?v=0.0.5",
           "type": "documentation"
         },
         {
@@ -68,7 +68,7 @@
           "type": "distribution"
         },
         {
-          "url": "https://github.com/raku-community-modules/Algorithm-Diff/archive/refs/tags/0.0.4.zip",
+          "url": "https://github.com/raku-community-modules/Algorithm-Diff/archive/refs/tags/0.0.5.zip",
           "type": "source-distribution"
         },
         {
@@ -156,7 +156,7 @@
   },
   "externalReferences": [
     {
-      "url": "https://raku.land/zef:raku-community-modules/Algorithm::Diff?v=0.0.4",
+      "url": "https://raku.land/zef:raku-community-modules/Algorithm::Diff?v=0.0.5",
       "type": "documentation"
     },
     {
@@ -172,7 +172,7 @@
       "type": "distribution"
     },
     {
-      "url": "https://github.com/raku-community-modules/Algorithm-Diff/archive/refs/tags/0.0.4.zip",
+      "url": "https://github.com/raku-community-modules/Algorithm-Diff/archive/refs/tags/0.0.5.zip",
       "type": "source-distribution"
     },
     {
