@@ -38,7 +38,6 @@ while $diff.Next {
 }
 
 # Alternate interfaces:
-
 use Algorithm::Diff;
 
 @lcs   = LCS( @seq1, @seq2 );
@@ -47,7 +46,6 @@ $count = LCS_length( @seq1, @seq2 );
 ( $seq1idxlist, $seq2idxlist ) = LCSidx( @seq1, @seq2 );
 
 # Complicated interfaces:
-
 @diffs  = diff( @seq1, @seq2 );
 
 @sdiffs = sdiff( @seq1, @seq2 );
@@ -696,7 +694,7 @@ This would use the 'ssn' field in each Person as a comparison key, and so would 
 AUTHOR
 ======
 
-Based on Perl 5 version released by Tye McQueen (http://perlmonks.org/?node=tye).
+Based on Perl 5 version released by Tye McQueen.
 
 Initial procedural interface port by takadonet. Further procedural porting and object interface port by Steve Schulze.
 
@@ -705,7 +703,7 @@ LICENSE
 
 Parts Copyright (c) 2000-2004 Ned Konz. All rights reserved. Parts by Tye McQueen.
 
-Copyright 2024 Raku Community
+Copyright 2024 - 2025 Raku Community
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl.
 
@@ -724,7 +722,7 @@ This code was adapted from the Smalltalk code of Mario Wolczko <mario@wolczko.co
 
 The algorithm is that described in *A Fast Algorithm for Computing Longest Common Subsequences*, CACM, vol.20, no.5, pp.350-353, May 1977, with a few minor improvements to improve the speed.
 
-Much work was done by Ned Konz (perl@bike-nomad.com).
+Much work was done by Ned Konz.
 
 The OO interface and some other changes are by Tye McQueen.
 
@@ -765,7 +763,7 @@ This code was adapted from the Smalltalk code of Mario Wolczko <mario@wolczko.co
 
 THANKS SECTION
 
-Thanks to Ned Konz's for rewriting the module to greatly improve performance, for maintaining it over the years, and for readilly handing it over to me so I could plod along with my improvements.
+Thanks to Ned Konz's for rewriting the module to greatly improve performance, for maintaining it over the years, and for readily handing it over to me so I could plod along with my improvements.
 
 (From Ned Konz's earlier versions):
 

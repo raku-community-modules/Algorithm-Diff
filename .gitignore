@@ -1,1 +1,3 @@
-.precomp
+.precomp/
+/Algorithm-Diff-*
+*.rakucov
