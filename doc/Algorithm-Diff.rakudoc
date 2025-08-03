@@ -7,7 +7,6 @@ Algorithm::Diff - Compute `intelligent' differences between two files / lists
 =head1 SYNOPSIS
 
 =begin code :lang<raku>
-
 use Algorithm::Diff;
 
 # This example produces traditional 'diff' output:
@@ -37,7 +36,6 @@ while $diff.Next {
 }
 
 # Alternate interfaces:
-
 use Algorithm::Diff;
 
 @lcs   = LCS( @seq1, @seq2 );
@@ -46,7 +44,6 @@ $count = LCS_length( @seq1, @seq2 );
 ( $seq1idxlist, $seq2idxlist ) = LCSidx( @seq1, @seq2 );
 
 # Complicated interfaces:
-
 @diffs  = diff( @seq1, @seq2 );
 
 @sdiffs = sdiff( @seq1, @seq2 );
@@ -71,7 +68,6 @@ traverse_balanced(
     CHANGE    => &callback4,
     &key_generator,
 );
-
 =end code
 
 =head1 INTRODUCTION
@@ -88,11 +84,9 @@ subsequence' method.  In the LCS problem, you have two sequences of
 items:
 
 =begin output
-
 a b c d f g h j q z
 
 a b c d e f g i j k r x y z
-
 =end output
 
 and you want to find the longest sequence of items that is present in
@@ -103,18 +97,14 @@ items.  You also want I<S> to be as long as possible.  In this case I<S>
 is
 
 =begin output
-
 a b c d f g j z
-
 =end output
 
 From there it's only a small step to get diff-like output:
 
 =begin output
-
 e   h i   k   q r x y
 +   - +   +   - + + +
-
 =end output
 
 This module solves the LCS problem.  It also includes a canned function
@@ -125,39 +115,31 @@ always pretty obvious, but that's not always the case, especially when
 the two sequences have many repeated elements.  For example, consider
 
 =begin output
-
 a x b y c z p d q
 a b c a x b y c z
-
 =end output
 
 A naive approach might start by matching up the C<a> and C<b> that
 appear at the beginning of each sequence, like this:
 
 =begin output
-
 a x b y c         z p d q
 a   b   c a b y c z
-
 =end output
 
 This finds the common subsequence C<a b c z>.  But actually, the LCS
 is C<a x b y c z>:
 
 =begin output
-
       a x b y c z p d q
 a b c a x b y c z
-
 =end output
 
 or
 
 =begin output
-
 a       x b y c z p d q
 a b c a x b y c z
-
 =end output
 
 =head1 USAGE
@@ -177,9 +159,7 @@ Given two lists of items, LCS returns an array containing
 their longest common subsequence.
 
 =begin code :lang<raku>
-
 @lcs = LCS( @seq1, @seq2 );
-
 =end code
 
 C<LCS> may be passed an optional third parameter; this is a CODE
@@ -187,9 +167,7 @@ reference to a key generation function.  See L</KEY GENERATION
 FUNCTIONS>.
 
 =begin code :lang<raku>
-
 @lcs = LCS( @seq1, @seq2, $keyGen );
-
 =end code
 
 =head2 LCS_length
@@ -207,21 +185,17 @@ second list contains the indices into @seq2 where the LCS items are located.
 Therefore, the following three lists will contain the same values:
 
 =begin code :lang<raku>
-
 my( $idx1, $idx2 ) = LCSidx( @seq1, @seq2 );
 my @list1 = @seq1[ $idx1 ];
 my @list2 = @seq2[ $idx2 ];
 my @list3 = LCS( @seq1, @seq2 );
-
 =end code
 
 =head2 new
 
 =begin code :lang<raku>
-
 $diff = Algorithm::Diffs.new( @seq1, @seq2 );
 $diff = Algorithm::Diffs.new( @seq1, @seq2, &keyGen );
-
 =end code
 
 C<new> computes the smallest set of additions and deletions necessary
@@ -244,21 +218,18 @@ but some of the symbols have different meanings:
 Method summary:
 
 =begin code :lang<raku>
-
 $obj        = Algorithm::Diff.new( @seq1, @seq2, [ &keyGen ] );
 $pos        = $obj.Next(  [ $count : 1 ] );
 $revPos     = $obj.Prev(  [ $count : 1 ] );
 $obj        = $obj.Reset( [ $pos : 0 ] );
 $copy       = $obj.Copy(  [ $pos, [ $newBase ] ] );
 $oldBase    = $obj.Base(  [ $newBase ] );
-
 =end code
 
 Note that all of the following methods C<die> if used on an object that
 is "reset" (not currently pointing at any hunk).
 
 =begin code :lang<raku>
-
 $bits    = $obj.Diff;
 @items   = $obj.Same;
 @items   = $obj.Items( $seqNum );
@@ -266,7 +237,6 @@ $bits    = $obj.Diff;
 $minIdx  = $obj.Min(   $seqNum, [ $base ] );
 $maxIdx  = $obj.Max(   $seqNum, [ $base ] );
 @values  = $obj.Get(   @names );
-
 =end code
 
 Passing in an undefined value for an optional argument is always treated the
@@ -275,11 +245,9 @@ same as if no argument were passed in.
 =head2 Next
 
 =begin code :lang<raku>
-
 $pos = $diff.Next;      # Move forward 1 hunk
 $pos = $diff.Next( 2 ); # Move forward 2 hunks
 $pos = $diff.Next(-5);  # Move backward 5 hunks
-
 =end code
 
 C<Next> moves the object to point at the next hunk.  The object starts
@@ -304,12 +272,10 @@ hunks; -1 for the last hunk, -2 for the second-to-last, etc.
 =head2 C<Reset>
 
 =begin code :lang<raku>
-
 $diff.Reset;       # Reset the object's position
 $diff.Reset($pos); # Move to the specified hunk
 $diff.Reset(1);    # Move to the first hunk
 $diff.Reset(-1);   # Move to the last hunk
-
 =end code
 
 C<Reset> returns the object, so, for example, you could use
@@ -318,9 +284,7 @@ C<< $diff.Reset().Next(-1) >> to get the number of hunks.
 =head2 Copy
 
 =begin code :lang<raku>
-
 $copy = $diff.Copy( $newPos, $newBase );
-
 =end code
 
 C<Copy> returns a copy of the object.  The copy and the orignal object
@@ -333,14 +297,12 @@ object's position.  But C<Copy> takes an optional first argument to set the
 new position, so the following three snippets are equivalent:
 
 =begin code :lang<raku>
-
 $copy = $diff.Copy($pos);
 
 $copy = $diff.Copy;
 $copy.Reset($pos);
 
 $copy = $diff.Copy.Reset($pos);
-
 =end code
 
 C<Copy> takes an optional second argument to set the base for
@@ -349,30 +311,24 @@ the position the same as in the original, here are two
 equivalent ways:
 
 =begin code :lang<raku>
-
 $copy = $diff.Copy;
 $copy.Base( 0 );
 
 $copy = $diff.Copy(Nil,0);
-
 =end code
 
 Here are two equivalent way to get a "reset" copy:
 
 =begin code :lang<raku>
-
 $copy = $diff.Copy(0);
 
 $copy = $diff.Copy.Reset;
-
 =end code
 
 =head2 Diff
 
 =begin code :lang<raku>
-
 $bits = $obj.Diff;
-
 =end code
 
 C<Diff> returns a true value iff the current hunk contains items that are
@@ -413,10 +369,8 @@ context, it returns the size of the list.
 =head2 Items
 
 =begin code :lang<raku>
-
 $count = $diff.Items(2);
 @items = $diff.Items($seqNum);
-
 =end code
 
 C<Items> returns the (number of) items from the specified sequence that
@@ -434,21 +388,17 @@ Otherwise, the hunk contains identical items and all of the following
 will return the same lists:
 
 =begin code :lang<raku>
-
 @items = $diff.Items(1);
 @items = $diff.Items(2);
 @items = $diff.Same;
-
 =end code
 
 =head2 Range
 
 =begin code :lang<raku>
-
 $count = $diff.Range( $seqNum );
 @indices = $diff.Range( $seqNum );
 @indices = $diff.Range( $seqNum, $base );
-
 =end code
 
 C<Range> is like C<Items> except that it returns a list of I<indices> to
@@ -458,29 +408,23 @@ calling the C<Base> method.  So, by default, the following two snippets
 return the same lists:
 
 =begin code :lang<raku>
-
 @list = $diff.Items(2);
 @list = @seq2[ $diff.Range(2) ];
-
 =end code
 
 You can also specify the base to use as the second argument.  So the
 following two snippets I<always> return the same lists:
 
 =begin code :lang<raku>
-
 @list = $diff.Items(1);
 @list = @seq1[ $diff.Range(1,0) ];
-
 =end code
 
 =head2 Base
 
 =begin code :lang<raku>
-
 $curBase = $diff.Base();
 $oldBase = $diff.Base($newBase);
-
 =end code
 
 C<Base> sets and/or returns the current base (usually 0 or 1) that is
@@ -491,10 +435,8 @@ base to 1 if you want to report traditional line numbers instead.
 =head2 Min
 
 =begin code :lang<raku>
-
 $min1 = $diff.Min(1);
 $min = $diff.Min( $seqNum, $base );
-
 =end code
 
 C<Min> returns the first value that C<Range> would return (given the
@@ -512,13 +454,11 @@ to a hash which can be used when comparing this sequence to other
 sequences with C<LCS> or C<LCS_length>.
 
 =begin code :lang<raku>
-
 $prep = prepare( @seq1 );
 for ^10_000 {
     @lcs = LCS( $prep, @seq2[$_] );
     # do something useful with @lcs
 }
-
 =end code
 
 C<prepare> may be passed an optional third parameter; this is a CODE
@@ -526,13 +466,11 @@ reference to a key generation function.  See L</KEY GENERATION
 FUNCTIONS>.
 
 =begin code :lang<raku>
-
 $prep = prepare( @seq1, &keyGen );
 for ^10_000 {
     @lcs = LCS( @seq2[$_], $prep, &keyGen );
     # do something useful with @lcs
 }
-
 =end code
 
 Using C<prepare> provides a performance gain of about 50% when calling LCS
@@ -541,9 +479,7 @@ many times compared with not preparing.
 =head2 diff
 
 =begin code :lang<raku>
-
 @diffs = diff( @seq1, @seq2 );
-
 =end code
 
 C<diff> computes the smallest set of additions and deletions necessary
@@ -560,16 +496,13 @@ empty.
 Here is an example.  Calling C<diff> for the following two sequences:
 
 =begin output
-
 a b c e h j l m n p
 b c d e f j k l m r s t
-
 =end output
 
 would produce the following list:
 
 =begin code :lang<raku>
-
 (
   [ [ '-', 0, 'a' ] ],
 
@@ -586,7 +519,6 @@ would produce the following list:
     [ '+', 10, 's' ],
     [ '+', 11, 't' ] ],
 )
-
 =end code
 
 There are five hunks here.  The first hunk says that the C<a> at
@@ -606,9 +538,7 @@ routine.
 =head2 sdiff
 
 =begin code :lang<raku>
-
 @sdiffs = sdiff( @seq1, @seq2 );
-
 =end code
 
 C<sdiff> computes all necessary components to show two sequences
@@ -632,16 +562,13 @@ be displayed side-by-side.
 An C<sdiff> of the following two sequences:
 
 =begin output
-
 a b c e h j l m n p
 b c d e f j k l m r s t
-
 =end output
 
 results in
 
 =begin code :lang<raku>
-
 ( [ '-', 'a', ''  ],
   [ 'u', 'b', 'b' ],
   [ 'u', 'c', 'c' ],
@@ -656,7 +583,6 @@ results in
   [ 'c', 'p', 's' ],
   [ '+', '',  't' ],
 )
-
 =end code
 
 C<sdiff> may be passed an optional third parameter; this is a CODE
@@ -673,7 +599,6 @@ compact description consisting of just one flat list of indices.  An
 example helps explain the format:
 
 =begin code :lang<raku>
-
 my @a = <a b c   e  h j   l m n p     >;
 my @b = <  b c d e f  j k l m    r s t>;
 @cdiff = compact_diff( @a, @b );
@@ -692,7 +617,6 @@ my @b = <  b c d e f  j k l m    r s t>;
      8,      9,   #  n p  !  r s t
     10,     12,   #
 );
-
 =end code
 
 The 0th, 2nd, 4th, etc. entries are all indices into @seq1 (@a in the
@@ -716,13 +640,11 @@ sequence.
 In other words, the first hunk consists of the following two lists of items:
 
 =begin code :lang<raku>
-
            #  1st pair     2nd pair
            # of indices   of indices
 @list1 = @a[ $cdiff[0] .. $cdiff[2]-1 ];
 @list2 = @b[ $cdiff[1] .. $cdiff[3]-1 ];
            # Hunk start   Hunk end
-
 =end code
 
 Note that the hunks will always alternate between those that are part of
@@ -743,10 +665,8 @@ that the first 4 index values in our example are all zero.  Plug these
 values into our previous code block and we get:
 
 =begin code :lang<raku>
-
 @hunk1a = @a[ 0 .. 0-1 ];
 @hunk1b = @b[ 0 .. 0-1 ];
-
 =end code
 
 And C<0..-1> returns the empty list.
@@ -758,7 +678,6 @@ Since C<@diff[2..5]> contains (0,0,1,0) in our example, the second hunk
 consists of these two lists of items:
 
 =begin code :lang<raku>
-
     @hunk2a = @a[ $cdiff[2] .. $cdiff[4]-1 ];
     @hunk2b = @b[ $cdiff[3] .. $cdiff[5]-1 ];
 # or
@@ -770,7 +689,6 @@ consists of these two lists of items:
 # or
     @hunk2a = ( 'a' );
     @hunk2b = ( );
-
 =end code
 
 That is, we would delete item 0 ('a') from @a.
@@ -779,7 +697,6 @@ Since C<@diff[4..7]> contains (1,0,3,2) in our example, the third hunk
 consists of these two lists of items:
 
 =begin code :lang<raku>
-
     @hunk3a = @a[ $cdiff[4] .. $cdiff[6]-1 ];
     @hunk3a = @b[ $cdiff[5] .. $cdiff[7]-1 ];
 # or
@@ -791,7 +708,6 @@ consists of these two lists of items:
 # or
     @hunk3a = qw( b c );
     @hunk3a = qw( b c );
-
 =end code
 
 Note that this third hunk contains unchanged items as our convention demands.
@@ -832,14 +748,12 @@ The arguments to C<traverse_sequences> are the two sequences to
 traverse, and a hash which specifies the callback functions, like this:
 
 =begin code :lang<raku>
-
 traverse_sequences(
     @seq1, @seq2,
     MATCH     => &callback_1,
     DISCARD_A => &callback_2,
     DISCARD_B => &callback_3,
 );
-
 =end code
 
 Callbacks for MATCH, DISCARD_A, and DISCARD_B are invoked with at least
@@ -880,7 +794,6 @@ supported by C<traverse_sequences>, C<traverse_balanced> supports
 a C<CHANGE> callback indicating that one element got C<replaced> by another:
 
 =begin code :lang<raku>
-
 traverse_balanced(
     @seq1, @seq2,
     MATCH => $callback_1,
@@ -888,7 +801,6 @@ traverse_balanced(
     DISCARD_B => $callback_3,
     CHANGE    => $callback_4,
 );
-
 =end code
 
 If no C<CHANGE> callback is specified, C<traverse_balanced>
@@ -926,7 +838,6 @@ contain unique references.
 For instance, consider this example:
 
 =begin code :lang<raku>
-
 class Person {
     has $.name;
     has $.ssn;
@@ -939,17 +850,14 @@ my $person2 = Person.new( name => 'Mary', ssn => '123-47-0000' );
 my $person3 = Person.new( name => 'Pete', ssn => '999-45-2222' );
 my $person4 = Person.new( name => 'Peggy', ssn => '123-45-9999' );
 my $person5 = Person.new( name => 'Frank', ssn => '000-45-9999' );
-
 =end code
 
 If you did this:
 
 =begin code :lang<raku>
-
 my $array1 = [ $person1, $person2, $person4 ];
 my $array2 = [ $person1, $person3, $person4, $person5 ];
 Algorithm::Diff::diff( $array1, $array2 );
-
 =end code
 
 everything would work out OK (each of the objects would be converted
@@ -958,11 +866,9 @@ into a string like "Person<2832536624368>" for comparison).
 But if you did this:
 
 =begin code :lang<raku>
-
 my $array1 = [ $person1, $person2, $person4 ];
 my $array2 = [ $person1, $person3, $person4.clone, $person5 ];
 Algorithm::Diff::diff( $array1, $array2 );
-
 =end code
 
 $person4 and $person4.clone (which have the same name and SSN)
@@ -970,11 +876,9 @@ would be seen as different objects. If you wanted them to be considered
 equivalent, you would have to pass in a key generation function:
 
 =begin code :lang<raku>
-
 my $array1 = [ $person1, $person2, $person4 ];
 my $array2 = [ $person1, $person3, $person4.clone, $person5 ];
 Algorithm::Diff::diff( $array1, $array2, \&Person::hash );
-
 =end code
 
 This would use the 'ssn' field in each Person as a comparison key, and
@@ -982,8 +886,7 @@ so would consider $person4 and $person4.clone as equal.
 
 =head1 AUTHOR
 
-Based on Perl 5 version released by Tye McQueen
-(http://perlmonks.org/?node=tye).
+Based on Perl 5 version released by Tye McQueen.
 
 Initial procedural interface port by takadonet.
 Further procedural porting and object interface port by Steve Schulze.
@@ -993,7 +896,7 @@ Further procedural porting and object interface port by Steve Schulze.
 Parts Copyright (c) 2000-2004 Ned Konz.  All rights reserved.
 Parts by Tye McQueen.
 
-Copyright 2024 Raku Community
+Copyright 2024 - 2025 Raku Community
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl.
@@ -1019,7 +922,7 @@ I<A Fast Algorithm for Computing Longest Common Subsequences>,
 CACM, vol.20, no.5, pp.350-353, May 1977, with a few
 minor improvements to improve the speed.
 
-Much work was done by Ned Konz (perl@bike-nomad.com).
+Much work was done by Ned Konz.
 
 The OO interface and some other changes are by Tye McQueen.
 
@@ -1083,7 +986,7 @@ ftp://st.cs.uiuc.edu/pub/Smalltalk/MANCHESTER/manchester/4.0/diff.st
 THANKS SECTION
 
 Thanks to Ned Konz's for rewriting the module to greatly improve
-performance, for maintaining it over the years, and for readilly handing
+performance, for maintaining it over the years, and for readily handing
 it over to me so I could plod along with my improvements.
 
 (From Ned Konz's earlier versions):
